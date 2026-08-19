@@ -1,5 +1,6 @@
 from django.test import TestCase
 
+from clinics.forms import ClinicRegistrationForm
 # Create your tests here.
 
 
@@ -44,6 +45,30 @@ class ClinicServiceTests(TestCase):
 
         self.assertTrue(user.check_password("StrongPassword123!"))
 
+
+
+class ClinicRegistrationFormTests(TestCase):
+
+    def setUp(self):
+        self.specialty = Specialty.objects.create(name="General Medicine")
+
+    def test_valid_registration_form(self):
+        form = ClinicRegistrationForm(
+            data={
+                "clinic_name": "My Clinic",
+                "clinic_phone": "0555123456",
+                "clinic_address": "Annaba",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "doctor@example.com",
+                "password": "StrongPassword123!",
+                "password_confirm": "StrongPassword123!",
+                "specialty": self.specialty.pk,
+
+            }
+        )
+
+        self.assertTrue(form.is_valid())
 
 
         
