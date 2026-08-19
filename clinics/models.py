@@ -5,9 +5,7 @@ from .profiles import DoctorProfile, SecretaryProfile
 class Clinic(models.Model):
     name = models.CharField(max_length=200)
     phone = models.CharField(max_length=50, blank=True)
-    email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
-    logo = models.ImageField(upload_to="clinics/logos/", blank=True, null=True)
     document_header = models.TextField(blank=True) 
     document_footer = models.TextField(blank=True)
 

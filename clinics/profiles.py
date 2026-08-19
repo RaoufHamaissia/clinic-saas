@@ -8,28 +8,12 @@ class DoctorProfile(models.Model):
 
     specialty = models.ForeignKey("clinics.Specialty", on_delete=models.PROTECT, related_name="doctors")
 
-    professional_title = models.CharField(max_length=100, blank=True)
-
-    registration_number = models.CharField(max_length=100, blank=True)
-
-    professional_email = models.EmailField(blank=True)
-
-    document_name = models.CharField(max_length=200, blank=True,)
-
-    signature = models.ImageField(upload_to="doctors/signatures/", blank=True, null=True)
-
-    stamp = models.ImageField(upload_to="doctors/stamps/", blank=True, null=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return (
-            self.document_name
-            or self.user.get_full_name()
-            or self.user.email
-        )
+        return (self.user.get_full_name() or self.user.email)
 
 
 class SecretaryProfile(models.Model):

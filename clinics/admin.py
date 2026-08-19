@@ -9,10 +9,8 @@ from .profiles import DoctorProfile, SecretaryProfile
 class ClinicAdmin(admin.ModelAdmin):
     list_display = (
         "name",
-        "phone",
-        "email",
-        "created_at",
-        
+        "phone",   
+        "created_at",  
         )
 
     search_fields = (
@@ -26,8 +24,7 @@ class DoctorProfileAdmin(admin.ModelAdmin):
     list_display = (
         "user",
         "clinic",
-        "specialty",
-        "registration_number",
+        "specialty"
     )
 
     list_filter = (
@@ -39,8 +36,7 @@ class DoctorProfileAdmin(admin.ModelAdmin):
     search_fields = (
         "user__email",
         "user__first_name",
-        "user__last_name",
-        "registration_number",
+        "user__last_name",  
     )
 
 

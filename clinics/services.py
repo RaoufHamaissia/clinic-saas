@@ -21,17 +21,12 @@ class ClinicService:
                         clinic_phone="",
                         clinic_email="",
                         clinic_address="",
-                        professional_title="",
-                        registration_number="",
-                        professional_phone="",
-                        professional_email="",
-
-
+                        
     ):
+        
         # 1. Create the clinic
         clinic = Clinic.objects.create(name=clinic_name,
-                                        phone=clinic_phone,
-                                        email=clinic_email, 
+                                        phone=clinic_phone,                                  
                                         address=clinic_address)
 
 
@@ -48,11 +43,21 @@ class ClinicService:
         doctor = DoctorProfile.objects.create(
             user=user,
             clinic=clinic,
-            specialty=specialty,
-            professional_title=professional_title,
-            registration_number=registration_number,
-            professional_phone=professional_phone,
-            professional_email=professional_email
+            specialty=specialty
         )
 
         return clinic, doctor
+
+    @staticmethod
+    def validate_doctor_profile(*, user, clinic, specialty):
+        if user.clinic_id != clinic.id:
+            raise ValueError("The doctor user does not belong to this clinic.")
+
+        if user.role != User.Role.DOCTOR:
+            raise ValueError("The user must have the doctor role.")
+
+        if not user.is_clinic_admin:
+            raise ValueError("The doctor must be a clinic administrator.")
+
+        if specialty is None:
+            raise ValueError("A specialty is required.")
