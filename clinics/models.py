@@ -1,4 +1,5 @@
 from django.db import models
+from .profiles import DoctorProfile, SecretaryProfile
 
 # Create your models here.
 class Clinic(models.Model):

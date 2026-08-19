@@ -13,27 +13,38 @@ class ClinicService:
     def create_clinic(
                         *,
                         clinic_name,
-                        email,
+                        doctor_email,
                         password,
                         first_name,
                         last_name,
-                        specialty,
+                        specialty,                    
+                        clinic_phone="",
+                        clinic_email="",
+                        clinic_address="",
                         professional_title="",
                         registration_number="",
                         professional_phone="",
                         professional_email="",
 
-    ):
-        clinic = Clinic.objects.create(name=clinic_name)
 
+    ):
+        # 1. Create the clinic
+        clinic = Clinic.objects.create(name=clinic_name,
+                                        phone=clinic_phone,
+                                        email=clinic_email, 
+                                        address=clinic_address)
+
+
+        # 2. Create the doctor User
         user = User.objects.create_clinic_admin( #type:ignore
-            email=email,
+            email=doctor_email,
             password=password,
             clinic=clinic,
             first_name=first_name,
             last_name=last_name
         )
 
+        # 3. Create the doctor's professional profile
         doctor = DoctorProfile.objects.create(
             user=user,
             clinic=clinic,
