@@ -1,0 +1,168 @@
+{% extends "core/base.html" %}
+
+{% block title %}
+    Dashboard | MediCore
+{% endblock title %}
+
+{% block page_title %}
+    Dashboard
+{% endblock page_title %}
+
+{% block content %}
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            Welcome {{ request.user.get_full_name }}
+        </h2>
+
+        <p class="text-muted">
+            Here's what's happening in your clinic today.
+        </p>
+        
+    </div>
+
+    <div class="row-g4">
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-2">
+                        Patients
+                    </p>
+
+                    <h2 class="fw-bold mb-0">
+                        0
+                    </h2>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card border-0 shadow-sm h-100">
+               <div class="card-body">
+
+                    <p class="text-muted mb-2">
+                        Today's appointments
+                    </p>
+
+                    <h2 class="fw-bold mb-0">
+                        0
+                    </h2>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-2">
+                        Doctors
+                    </p>
+
+                    <h2 class="fw-bold mb-0">
+                        1
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+
+        <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-2">
+                        Secretaries
+                    </p>
+
+                    <h2 class="fw-bold mb-0">
+                        0
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row g-4 mt-2">
+
+        <div class="col-lg-8">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body">
+
+                    <h5 class="fw-bold">
+                        Today's appointments
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        No appointments scheduled for today.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body">
+
+                    <h5 class="fw-bold">
+                        Quick actions
+                    </h5>
+
+                    <div class="d-grid gap-2">
+
+                        <a
+                            href="#"
+                            class="btn btn-primary"
+                        >
+                            Add patient
+                        </a>
+
+                        <a
+                            href="#"
+                            class="btn btn-outline-primary"
+                        >
+                            New appointment
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+{% endblock %}
+
+
+
+
+
+
+{% endblock content %}
