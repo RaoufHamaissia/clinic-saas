@@ -58,3 +58,7 @@ class SecretaryProfileAdmin(admin.ModelAdmin):
         "user__first_name",
         "user__last_name",
     )
+
+@admin.register(Specialty)
+class SpecialtyAdmin(admin.ModelAdmin):
+    pass

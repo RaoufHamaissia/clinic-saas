@@ -35,8 +35,8 @@ def register_clinic(request):
 
                 return redirect("dashboard")
 
-        else:
-            form = ClinicRegistrationForm()
+    else:
+        form = ClinicRegistrationForm()
 
-        context = {"form": form}
-        return render(request, "clinics/register.html", context)
+    context = {"form": form}
+    return render(request, "clinics/register.html", context)
