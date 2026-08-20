@@ -22,6 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("clinic/", include("clinics.urls")),
 
-    #path("dashboard/", dashboard, name="dashboard"),
+    path("dashboard/", include("core.urls") ),
 ]
 

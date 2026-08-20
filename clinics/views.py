@@ -33,7 +33,7 @@ def register_clinic(request):
 
                 messages.success(request, "Your clinic has been created successfully")
 
-                return redirect("dashboard")
+                return redirect("core:dashboard")
 
     else:
         form = ClinicRegistrationForm()
