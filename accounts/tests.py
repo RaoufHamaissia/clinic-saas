@@ -54,7 +54,7 @@ class AuthenticationTests(TestCase):
             password="StrongPassword123!",
         )
 
-        response = self.client.get(reverse("accounts:logout"))
+        response = self.client.post(reverse("accounts:logout"))
 
         self.assertRedirects(response, reverse("accounts:login"))
 
