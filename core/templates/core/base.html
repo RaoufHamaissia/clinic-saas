@@ -123,8 +123,13 @@
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
-                                <a href="{% url "accounts:logout" %}" class="dropdown-item text-danger">Logout</a>
-                            </li>
+                                <form method="post" action="{% url "accounts:logout" %}" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        Logout
+                                    </button>
+                                </form>
+                                
                         </ul>
                     </div>
                  </nav>
