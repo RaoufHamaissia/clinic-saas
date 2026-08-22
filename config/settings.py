@@ -151,3 +151,4 @@ LOGIN_REDIRECT_URL = "core:dashboard"
 LOGOUT_REDIRECT_URL = "accounts:login"
 
 PHONENUMBER_DEFAULT_REGION = "DZ"
+PHONENUMBER_DB_FORMAT = "E164"  # normalized storage, e.g. +213555123456
