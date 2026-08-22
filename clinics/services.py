@@ -7,6 +7,8 @@ from .models import Clinic
 from .profiles import DoctorProfile
 
 
+
+
 class ClinicService:
     @staticmethod
     @transaction.atomic
@@ -61,3 +63,6 @@ class ClinicService:
 
         if specialty is None:
             raise ValueError("A specialty is required.")
+
+
+

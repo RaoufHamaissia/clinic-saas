@@ -15,7 +15,7 @@
         </h2>
 
         <p class="text-muted">
-            Here's what's happening in your clinic today.
+            Here's what's happening in {{ clinic.name}}.
         </p>
         
     </div>
@@ -69,7 +69,7 @@
                     </p>
 
                     <h2 class="fw-bold mb-0">
-                        1
+                        {{ doctors_count }}
                     </h2>
 
                 </div>
@@ -89,7 +89,7 @@
                     </p>
 
                     <h2 class="fw-bold mb-0">
-                        0
+                        {{ secretaries_count }}
                     </h2>
 
                 </div>

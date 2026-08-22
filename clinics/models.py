@@ -1,5 +1,6 @@
 from django.db import models
 from .profiles import DoctorProfile, SecretaryProfile
+from core.models import ClinicOwnedModel
 
 # Create your models here.
 class Clinic(models.Model):
@@ -29,3 +30,6 @@ class Specialty(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
