@@ -16,7 +16,7 @@ class ClinicAdmin(admin.ModelAdmin):
     search_fields = (
         "name",
         "phone",
-        "email",
+        
     )
 
 @admin.register(DoctorProfile)
@@ -54,7 +54,7 @@ class SecretaryProfileAdmin(admin.ModelAdmin):
     )
 
     search_fields = (
-        "user__username",
+        "user__email",
         "user__first_name",
         "user__last_name",
     )

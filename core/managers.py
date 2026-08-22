@@ -1,5 +1,6 @@
 from django.db import models
 
+
 from .querysets import ClinicQuerySet
 
 class ClinicManager(models.Manager):
