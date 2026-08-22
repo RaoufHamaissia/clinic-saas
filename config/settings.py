@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "patients",
     "appointments",
     "records",
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [
@@ -148,3 +149,5 @@ LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "core:dashboard"
 
 LOGOUT_REDIRECT_URL = "accounts:login"
+
+PHONENUMBER_DEFAULT_REGION = "DZ"
