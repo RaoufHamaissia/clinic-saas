@@ -1,0 +1,48 @@
+{% extends "core/base.html" %}
+
+{% block title %}
+    Patients | Medicore
+{% endblock title %}
+
+{% block page_title %}
+    Patients
+{% endblock page_title %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Patients</h2>
+
+        <a href="{% url "patients:add" %}" class="btn btn-primary"> Add patient</a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+
+            {% if patients %}
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Date of birth</th>
+                            <th>Reason for visit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                            <tr>
+                                <td>{{ patient.first_name }} {{ patient.last_name }}</td>
+                                <td>{{ patient.phone|default:"-" }}</td>
+                                <td>{{ patient.date_of_birth|default:"-" }}</td>
+                                <td>{{ patient.reason_for_visit|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted mb-0">No patient yet.</p>
+            {% endif %}
+
+        </div>
+    </div>
+{% endblock content %}
