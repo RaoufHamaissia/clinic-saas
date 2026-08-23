@@ -44,7 +44,7 @@ class PatientViewTests(TestCase):
         self.assertIn("/accounts/login/", response.url) #type:ignore
 
     def test_list_only_shows_own_clinic_patients(self):
-        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!") 
 
         response = self.client.get(reverse("patients:list"))
 
