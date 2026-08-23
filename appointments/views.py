@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 
 import appointments
 
-from .forms import AppointmentForm
+from .forms import AppointmentForm, WalkInForm
 from .services import AppointmentService
 from .models import Appointment
 
@@ -65,5 +65,31 @@ def add_appointment(request):
 
     context = {"form": form}
     return render(request, "appointments/add.html", context)
+
+
+@login_required
+def add_walk_in(request):
+    clinic = _require_clinic(request)
+
+    if request.method == 'POST':
+        form = WalkInForm(request.POST, clinic=clinic)
+
+        if form.is_valid():
+            AppointmentService.create_walk_in(
+                clinic=clinic,
+                patient=form.cleaned_data['patient'],
+                doctor=form.cleaned_data['doctor'],
+                created_by=request.user,
+            )
+
+            messages.success(request, "Walk-in added to today's list")
+
+            return redirect("appointments:day")
+
+    else: 
+        form = WalkInForm(clinic=clinic)
+
+    context = {"form": form}
+    return render(request, "appointments/walk_in.html", context)
 
 
