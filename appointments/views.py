@@ -93,3 +93,20 @@ def add_walk_in(request):
     return render(request, "appointments/walk_in.html", context)
 
 
+@login_required
+@require_POST
+def update_status(request, pk):
+    clinic = _require_clinic(request)
+
+    appointment = get_object_or_404(Appointment.objects.for_clinic(clinic, pk=pk)) #type:ignore
+
+    new_status = request.POST.get("status")
+
+    try:
+        AppointmentService.update_status(appointment=appointment, new_status=new_status)
+    except ValueError:
+        messages.error(request, "Invalid status.")
+    else:
+        messages.success(request, "Status updated")
+
+    return redirect("appointments:day")
