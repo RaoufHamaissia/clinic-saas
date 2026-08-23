@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 # Create your models here.
@@ -56,6 +57,8 @@ class User(AbstractUser):
     username = None
 
     email = models.EmailField(unique=True)
+
+    phone = PhoneNumberField(blank=True)
 
     clinic = models.ForeignKey("clinics.Clinic", on_delete=models.PROTECT, related_name="users",null=True, blank=True)
 
