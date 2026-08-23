@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 from .forms import PatientForm
 from .services import PatientService
@@ -8,9 +9,22 @@ from .services import PatientService
 
 # Create your views here.
 
+def _required_clinic(request):
+    """
+    Guards against users with no clinic (e.g.) platform superusers with no clinic assigned
+    hitting patient views. Returns the clinic or raises.
+    """
+    clinic = request.user.clinic
+
+    if clinic is None:
+        raise PermissionDenied("you must belong to a clinic to manage patients.")
+
+    return clinic
+
+
 @login_required
 def patient_list(request):
-    clinic = request.user.clinic
+    clinic = _required_clinic(request)
 
     patients = PatientService.get_for_clinic(clinic)
 
@@ -19,7 +33,7 @@ def patient_list(request):
 
 @login_required
 def add_patient(request):
-    clinic = request.user.clinic
+    clinic = _required_clinic(request)
 
     if request.method == "POST":
         form = PatientForm(request.POST)
