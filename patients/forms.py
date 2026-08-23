@@ -3,12 +3,12 @@ from turtle import textinput
 
 from django import forms
 from django.forms.widgets import TextInput
-from phonenumber_field.modelfields import PhoneNumberField
+from phonenumber_field.formfields import PhoneNumberField
 
 class PatientForm(forms.Form):
     first_name = forms.CharField( #type:ignore
         max_length=150,
-        label="First name"
+        label="First name",
         widget=forms.TextInput(
                          attrs={
                                "class": "form-control",

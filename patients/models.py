@@ -8,7 +8,7 @@ class Patient(ClinicOwnedModel):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     date_of_birth = models.DateField(null=True, blank=True)
-    phone = PhoneNumberField(unique=True, blank=True)
+    phone = PhoneNumberField(unique=False, blank=True)
     address = models.TextField(blank=True)
 
     reason_for_visit = models.CharField(max_length=255, blank=True)
