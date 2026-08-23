@@ -33,7 +33,7 @@
                     </p>
 
                     <h2 class="fw-bold mb-0">
-                        0
+                        {{ patients_count }}
                     </h2>
                 </div>
 
@@ -135,7 +135,7 @@
                     <div class="d-grid gap-2">
 
                         <a
-                            href="#"
+                            href="{% url "patients:add" %}"
                             class="btn btn-primary"
                         >
                             Add patient
