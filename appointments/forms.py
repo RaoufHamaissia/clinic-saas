@@ -1,6 +1,6 @@
-from tkinter import N
-
 from django import forms
+from django.utils import timezone
+from django.utils.timezone import is_naive
 
 from clinics.profiles import DoctorProfile
 from patients.models import Patient
@@ -34,6 +34,16 @@ class AppointmentForm(forms.Form):
             self.fields["patient"].queryset = Patient.objects.for_clinic(clinic)  #type:ignore
             self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic)  #type:ignore
 
+    def clean_scheduled_at(self):
+        scheduled_at = self.cleaned_data["scheduled_at"]
+
+        if timezone.is_naive(scheduled_at):
+            scheduled_at = timezone.make_aware(scheduled_at)
+
+        if scheduled_at < timezone.now():
+            raise forms.ValidationError("You can't book an appointment in the past.")
+
+        return scheduled_at
 
 class WalkInForm(forms.Form):
     patient = forms.ModelChoiceField(
