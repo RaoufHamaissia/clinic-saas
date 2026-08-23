@@ -27,6 +27,8 @@ urlpatterns = [
 
     path("dashboard/", include("core.urls") ),
 
+    path("patients/", include("patients.urls")),
+
     
 ]
 
