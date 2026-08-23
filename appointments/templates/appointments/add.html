@@ -1,0 +1,47 @@
+{% extends "core/base.html" %}
+
+{% block title %}Book Appointment | MediCore{% endblock title %}
+{% block page_title %}Book appointment{% endblock page_title %}
+
+{% block content %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="mb-3">
+                    {{ form.patient.label_tag }}
+                    {{ form.patient }}
+                    {% for error in form.patient.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.doctor.label_tag }}
+                    {{ form.doctor }}
+                    {% for error in form.doctor.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.scheduled_at.label_tag }}
+                    {{ form.scheduled_at }}
+                    {% for error in form.scheduled_at.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Book</button>
+                    <a href="{% url 'appointments:day' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
