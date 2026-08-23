@@ -1,6 +1,5 @@
-from hmac import new
-
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from .models import Appointment
 
@@ -21,6 +20,9 @@ class AppointmentService:
 
         if doctor.clinic_id != clinic.id:
             raise ValueError("Doctor does not belong to this clinic.")
+
+        if scheduled_at < timezone.now():
+            raise ValidationError("You can't book an appointment in the past.")
 
         return Appointment.objects.create(
             clinic=clinic,
