@@ -44,6 +44,7 @@ def add_patient(request):
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
                 date_of_birth=form.cleaned_data['date_of_birth'],
+                approximate_age=form.cleaned_data['approximate_age'],
                 phone=form.cleaned_data['phone'],
                 address=form.cleaned_data['address'],
                 reason_for_visit=form.cleaned_data['reason_for_visit'],
