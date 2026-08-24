@@ -12,11 +12,25 @@ class PatientService:
         return Patient.objects.for_clinic(clinic).get(pk=patient_id) #type:ignore
 
     @staticmethod
-    def create_patient(*, clinic, first_name, last_name, date_of_birth=None,
-                       phone="", address="", reason_for_visit=""):
-        return Patient.objects.create(clinic=clinic, first_name=first_name,
-                                      last_name=last_name, date_of_birth=date_of_birth,
-                                      phone=phone, address=address,
-                                      reason_for_visit=reason_for_visit)
+    def create_patient(
+        *, 
+        clinic, 
+        first_name, 
+        last_name, 
+        date_of_birth=None,
+        approximate_age=None,
+        phone="", 
+        address="", 
+        reason_for_visit=""):
+
+        return Patient.objects.create(
+            clinic=clinic,
+            first_name=first_name,
+            last_name=last_name,
+            date_of_birth=date_of_birth,
+            approximate_age=approximate_age,
+            phone=phone, 
+            address=address,
+            reason_for_visit=reason_for_visit)
 
     
