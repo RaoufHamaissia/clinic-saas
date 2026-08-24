@@ -37,8 +37,8 @@
     <div class="meta">
         <div>
             <strong>Patient:</strong> {{ prescription.patient }}<br>
-            {% if prescription.patient.date_of_birth %}
-                <strong>DOB:</strong> {{ prescription.patient.date_of_birth }}<br>
+            {% if prescription.patient.age %}
+                <strong>Age:</strong> {{ prescription.patient.age }}<br>
             {% endif %}
         </div>
         <div>
