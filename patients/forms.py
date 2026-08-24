@@ -39,6 +39,19 @@ class PatientForm(forms.Form):
         )
     )
 
+    approximate_age = forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=130,
+        label="Approximate age (if DOB unknown)",
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "e.g. 45",
+            }
+        )
+    )
+
     phone = PhoneNumberField(  #type:ignore
         required=False,
         label="Phone",
