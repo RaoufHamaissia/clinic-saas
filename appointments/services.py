@@ -9,7 +9,8 @@ class AppointmentService:
     def get_for_day(clinic, day):
         return (
             Appointment.objects
-            .for_clinic(scheduled_at__date=day)   #type:ignore
+            .for_clinic(clinic) #type:ignore
+            .filter(scheduled_at__date=day)   
             .select_related("patient", "doctor__user")
         )
 
@@ -47,7 +48,7 @@ class AppointmentService:
                     patient=patient,
                     doctor=doctor,
                     scheduled_at=timezone.now(),
-                    status=Appointment.Status.SCHEDULED,
+                    status=Appointment.Status.WAITING,
                     is_walk_in=True,
                     created_by=created_by
                 )

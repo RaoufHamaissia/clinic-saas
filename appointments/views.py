@@ -58,7 +58,7 @@ def add_appointment(request):
 
             messages.success(request, "Appointment booked successfully")
 
-            return redirect("appointment:day")
+            return redirect("appointments:day")
 
     else:
         form = AppointmentForm(clinic=clinic)
@@ -98,7 +98,7 @@ def add_walk_in(request):
 def update_status(request, pk):
     clinic = _require_clinic(request)
 
-    appointment = get_object_or_404(Appointment.objects.for_clinic(clinic, pk=pk)) #type:ignore
+    appointment = get_object_or_404(Appointment.objects.for_clinic(clinic), pk=pk) #type:ignore
 
     new_status = request.POST.get("status")
 
