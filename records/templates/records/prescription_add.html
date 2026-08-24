@@ -1,0 +1,55 @@
+{% extends "core/base.html" %}
+
+{% block title %}New Prescription | MediCore{% endblock title %}
+{% block page_title %}New prescription{% endblock page_title %}
+
+{% block content %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                {{ formset.management_form }}
+
+                <div class="mb-3">
+                    {{ form.patient.label_tag }}
+                    {{ form.patient }}
+                    {% for error in form.patient.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.doctor.label_tag }}
+                    {{ form.doctor }}
+                    {% for error in form.doctor.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <h5 class="fw-semibold mb-3">Medications</h5>
+
+                {% for item_form in formset %}
+                    <div class="row g-2 mb-2 align-items-start border-bottom pb-2">
+                        <div class="col-md-3">{{ item_form.medication_name }}</div>
+                        <div class="col-md-2">{{ item_form.dosage }}</div>
+                        <div class="col-md-2">{{ item_form.frequency }}</div>
+                        <div class="col-md-2">{{ item_form.duration }}</div>
+                        <div class="col-md-3">{{ item_form.instructions }}</div>
+                    </div>
+                {% endfor %}
+
+                <div class="mb-4 mt-3">
+                    {{ form.notes.label_tag }}
+                    {{ form.notes }}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Create & print
+                </button>
+                <a href="{% url 'records:prescription_list' %}" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
