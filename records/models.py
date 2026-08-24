@@ -24,3 +24,15 @@ class DoctorDocumentProfile(models.Model):
     def __str__(self):
         return f"Document profile for {self.doctor}"
 
+class Prescription(ClinicOwnedModel):
+    patient = models.ForeignKey("patients.Patient", on_delete=models.PROTECT,related_name="prescriptions")
+    doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="prescriptions")
+
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Prescription for {self.patient} — {self.created_at:%Y-%m-%d}"
+
