@@ -80,4 +80,52 @@ class DoctorNote(ClinicOwnedModel):
     def __str__(self):
         return  f"Note for {self.patient} — {self.created_at:%Y-%m-%d}"
 
-     
+
+
+class ProcedureReport(ClinicOwnedModel):
+    patient = models.ForeignKey("patients.Patient", on_delete=models.PROTECT, related_name="procedure_reports")
+    doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="procedure_reports")
+
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Procedure report for {self.patient} — {self.created_at:%Y-%m-%d}"
+
+
+class ProcedureItem(models.Model):
+    report = models.ForeignKey(ProcedureReport, on_delete=models.CASCADE, related_name="items")
+
+    procedure_name = models.CharField(max_length=200)
+    findings = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.procedure_name
+
+
+class LabworkDemand(ClinicOwnedModel):
+    class Urgency(models.TextChoices):
+        ROUTINE = "routine", "Routine"
+        URGENT = "urgent", "Urgent"
+
+    patient = models.ForeignKey("patients.Patient", on_delete=models.PROTECT, related_name="labwork_demands")
+    doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="labwork_demands")
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Labwork demand for {self.patient} — {self.created_at:%Y-%m-%d}"
+
+
+class LabworkItem(models.Model):
+    demand = models.ForeignKey(LabworkDemand, on_delete=models.CASCADE, related_name="items")
+
+    test_name = models.CharField(max_length=200)
+    urgency = models.CharField(max_length=20, choices=LabworkDemand.Urgency.choices, default=LabworkDemand.Urgency.ROUTINE)
+    clinical_indication = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return self.test_name
