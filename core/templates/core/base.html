@@ -80,13 +80,23 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            Medical Records
+                        <a href="{% url "records:prescription_list" %}" class="nav-link">
+                            Prescriptions
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            Prescriptions
+                        <a href="{% url "records:note_list" %}" class="nav-link">
+                            Doctor Notes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url "records:procedure_report_list" %}" class="nav-link">
+                            Procedure Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url "records:labwork_demand_list" %}" class="nav-link">
+                            Labwork Demands
                         </a>
                     </li>
                     <li class="nav-item">
