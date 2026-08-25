@@ -75,7 +75,7 @@ class DoctorNote(ClinicOwnedModel):
     content = models.TextField()
 
     class Meta:
-        ordering = ["-created-at"]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return  f"Note for {self.patient} — {self.created_at:%Y-%m-%d}"
