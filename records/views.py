@@ -9,15 +9,18 @@ from .forms import (
     PrescriptionForm, PrescriptionItemFormSet, DoctorNoteForm,
     ProcedureReportForm, ProcedureItemFormSet,
     LabworkDemandForm, LabworkItemFormSet,
+    DoctorDocumentProfileForm,
 )
 
 from .services import (
     PrescriptionService, MedicationService, DoctorNoteService,
     ProcedureReportService, LabworkDemandService,
 )
-from .models import Prescription, DoctorNote, ProcedureReport, LabworkDemand
+from .models import DoctorDocumentProfile, Prescription, DoctorNote, ProcedureReport, LabworkDemand
 
 from django.http import JsonResponse
+
+from accounts.models import User
 
 
 # Create your views here.
@@ -302,3 +305,29 @@ def labwork_demand_print(request, pk):
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="labwork_demand_{demand.pk}.pdf"'
     return response
+
+
+@login_required
+def edit_document_profile(request):
+    if request.user.role != User.Role.DOCTOR:
+        raise PermissionDenied("Only doctors have a document profile.")
+
+    doctor = getattr(request.user, "doctor_profile", None)
+    if doctor is None:
+        raise PermissionDenied("Your account has no doctor profile.")
+
+    document_profile, _ = DoctorDocumentProfile.objects.get_or_create(doctor=doctor)
+
+    if request.method == "POST":
+        form = DoctorDocumentProfileForm(request.POST, request.FILES, instance=document_profile)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Document profile updated")
+            return redirect("records:edit_document_profile")
+
+    else: 
+        form = DoctorDocumentProfileForm(instance=document_profile) 
+
+    context = {"form": form}
+    return render(request, "records/document_profile.html", context)
