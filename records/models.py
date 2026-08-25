@@ -67,4 +67,17 @@ class Medication(models.Model):
     def __str__(self):
         return self.name
 
-    
+
+class DoctorNote(ClinicOwnedModel):
+    patient = models.ForeignKey("patients.Patient", on_delete=models.PROTECT, related_name="doctor_notes")
+    doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="doctor_notes")
+
+    content = models.TextField()
+
+    class Meta:
+        ordering = ["-created-at"]
+
+    def __str__(self):
+        return  f"Note for {self.patient} — {self.created_at:%Y-%m-%d}"
+
+     
