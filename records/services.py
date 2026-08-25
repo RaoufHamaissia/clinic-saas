@@ -1,4 +1,33 @@
-from .models import Prescription, PrescriptionItem
+from .models import Prescription, PrescriptionItem, Medication
+
+
+class MedicationService:
+    @staticmethod
+    def suggest(query, limit=10):
+        query = (query or "").strip()
+
+        if not query:
+            return Medication.objects.none()
+
+        return Medication.objects.filter(name__icontains=query)[:limit]
+
+    @staticmethod
+    def register(name):
+        """
+        Records a medication name into the global suggestion list if it's
+        new. Case-insensitive dedup so "Amoxicillin" and "amoxicillin"
+        don't create two entries.
+        """
+        name = (name or "").strip()
+
+        if not name:
+            return None
+
+        existing = Medication.objects.filter(name__iexact=name).first()
+        
+        if existing:
+            return existing
+        return Medication.objects.create(name=name)
 
 class PrescriptionService:
 
