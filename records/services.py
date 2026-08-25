@@ -60,24 +60,27 @@ class PrescriptionService:
 
         return prescription
 
-    class DoctorNoteService:
 
-        @staticmethod
-        def get_for_clinic(clinic):
-            return DoctorNote.objects.for_clinic(clinic) #type:ignore
+    
 
-        @staticmethod
-        def get_note(clinic, note_id):
-            return DoctorNote.objects.for_clinic(clinic).get(pk=note_id) #type:ignore
+class DoctorNoteService:
 
-        @staticmethod
-        def create_note(*, clinic, patient, doctor, content):
-            if patient.clinic_id != clinic.id:
-                raise ValueError("Patient does not belong to this clinic.")
+    @staticmethod
+    def get_for_clinic(clinic):
+        return DoctorNote.objects.for_clinic(clinic) #type:ignore
 
-            if doctor.clinic_id != clinic.id:
-                raise ValueError("Doctor does not belong to this clinic.")
+    @staticmethod
+    def get_note(clinic, note_id):
+        return DoctorNote.objects.for_clinic(clinic).get(pk=note_id) #type:ignore
 
-            return DoctorNote.objects.create(
-                clinic=clinic, patient=patient, doctor=doctor, content=content
-            )
+    @staticmethod
+    def create_note(*, clinic, patient, doctor, content):
+        if patient.clinic_id != clinic.id:
+            raise ValueError("Patient does not belong to this clinic.")
+
+        if doctor.clinic_id != clinic.id:
+            raise ValueError("Doctor does not belong to this clinic.")
+
+        return DoctorNote.objects.create(
+            clinic=clinic, patient=patient, doctor=doctor, content=content
+        )

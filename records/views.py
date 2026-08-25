@@ -5,9 +5,9 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 
-from .forms import PrescriptionForm, PrescriptionItemFormSet
-from .services import PrescriptionService, MedicationService
-from .models import Prescription
+from .forms import PrescriptionForm, PrescriptionItemFormSet, DoctorNoteForm
+from .services import PrescriptionService, MedicationService, DoctorNoteService
+from .models import Prescription, DoctorNote
 
 from django.http import JsonResponse
 
@@ -107,3 +107,62 @@ def prescription_print(request, pk):
     return response
 
 
+
+
+@login_required
+def note_list(request):
+    clinic = _require_clinic(request)
+
+    notes = DoctorNoteService.get_for_clinic(clinic)
+
+    context = {"notes": notes}
+    return render(request, "records/note_list.html", context)
+
+@login_required
+def add_note(request):
+    clinic = _require_clinic(request)
+
+    if request.method == "POST":
+        form = DoctorNoteForm(request.POST, clinic=clinic)
+
+        if form.is_valid():
+            note = DoctorNoteService.create_note(
+                clinic=clinic,
+                patient=form.cleaned_data["patient"],
+                doctor=form.cleaned_data["doctor"],
+                content=form.cleaned_data["content"],
+            )
+
+            messages.success(request, "Note saved")
+
+            return redirect("records:note_print", pk=note.pk)
+
+    else:
+        form = DoctorNoteForm(clinic=clinic)
+
+    context = {"form": form}
+    return render(request, "records/note_add.html", context)
+
+
+@login_required
+def note_print(request, pk):
+    clinic = _require_clinic(request)
+
+    note = get_object_or_404(
+        DoctorNote.objects.for_clinic(clinic).select_related("patient", "doctor__user", "clinic"), #type:ignore
+        pk=pk,
+    )
+
+    html_string = render_to_string("records/note_pdf.html", {
+        "note": note,
+        "clinic": clinic,
+        "doctor": note.doctor,
+    })
+
+    from weasyprint import HTML
+
+    pdf_bytes = HTML(string=html_string).write_pdf()
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="note_{note.pk}.pdf"'
+    return response
