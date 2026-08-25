@@ -4,7 +4,7 @@ from django.forms import formset_factory
 from clinics.profiles import DoctorProfile
 from patients.models import Patient
 
-from .models import LabworkDemand
+from .models import LabworkDemand, DoctorDocumentProfile
 
 class PrescriptionForm(forms.Form):
     patient = forms.ModelChoiceField(
@@ -145,3 +145,19 @@ class LabworkItemForm(forms.Form):
 
 
 LabworkItemFormSet = formset_factory(LabworkItemForm, extra=2, can_delete=True)
+
+
+class DoctorDocumentProfileForm(forms.ModelForm):
+    class Meta:
+        model = DoctorDocumentProfile
+        fields = ["professional_title", "registration_number", "signature", "stamp"]
+        widgets = {
+            "professional_title": forms.TextInput(attrs={
+                "class": "form-control", "placeholder": "e.g. General Practitioner"
+            }),
+            "registration_number": forms.TextInput(attrs={
+                "class": "form-control", "placeholder": "Medical registration number"
+            }),
+            "signature": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "stamp": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
