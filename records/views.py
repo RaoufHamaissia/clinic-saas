@@ -5,9 +5,17 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 
-from .forms import PrescriptionForm, PrescriptionItemFormSet, DoctorNoteForm
-from .services import PrescriptionService, MedicationService, DoctorNoteService
-from .models import Prescription, DoctorNote
+from .forms import (
+    PrescriptionForm, PrescriptionItemFormSet, DoctorNoteForm,
+    ProcedureReportForm, ProcedureItemFormSet,
+    LabworkDemandForm, LabworkItemFormSet,
+)
+
+from .services import (
+    PrescriptionService, MedicationService, DoctorNoteService,
+    ProcedureReportService, LabworkDemandService,
+)
+from .models import Prescription, DoctorNote, ProcedureReport, LabworkDemand
 
 from django.http import JsonResponse
 
@@ -165,4 +173,132 @@ def note_print(request, pk):
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="note_{note.pk}.pdf"'
+    return response
+
+
+
+
+
+@login_required
+def procedure_report_list(request):
+    clinic = _require_clinic(request)
+    reports = ProcedureReportService.get_for_clinic(clinic)
+    return render(request, "records/procedure_report_list.html", {"reports": reports})
+
+@login_required
+def add_procedure_report(request):
+    clinic = _require_clinic(request)
+
+    if request.method == "POST":
+        form = ProcedureReportForm(request.POST, clinic=clinic)
+        formset = ProcedureItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            items = [
+                {"procedure_name": f.cleaned_data["procedure_name"], "findings": f.cleaned_data.get("findings", "")}
+                for f in formset
+                if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("procedure_name")
+            ]
+
+            report = ProcedureReportService.create_report(
+                clinic=clinic,
+                patient=form.cleaned_data["patient"],
+                doctor=form.cleaned_data["doctor"],
+                notes=form.cleaned_data["notes"],
+                items=items,
+            )
+
+            messages.success(request, "Procedure report created")
+            return redirect("records:procedure_report_print", pk=report.pk)
+
+    else:
+        form = ProcedureReportForm(clinic=clinic)
+        formset = ProcedureItemFormSet()
+
+    return render(request, "records/procedure_report_add.html", {"form": form, "formset": formset})
+
+
+@login_required
+def procedure_report_print(request, pk):
+    clinic = _require_clinic(request)
+
+    report = get_object_or_404(
+        ProcedureReport.objects.for_clinic(clinic).select_related("patient", "doctor__user", "clinic"), #type:ignore
+        pk=pk,
+    ) 
+
+    html_string = render_to_string("records/procedure_report_pdf.html", {
+        "report": report, "clinic": clinic, "doctor": report.doctor, "items": report.items.all(),
+    })
+
+    from weasyprint import HTML
+    pdf_bytes = HTML(string=html_string).write_pdf()
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="procedure_report_{report.pk}.pdf"'
+    return response
+
+
+
+@login_required
+def labwork_demand_list(request):
+    clinic = _require_clinic(request)
+    demands = LabworkDemandService.get_for_clinic(clinic)
+    return render(request, "records/labwork_demand_list.html", {"demands": demands})
+
+
+@login_required
+def add_labwork_demand(request):
+    clinic = _require_clinic(request)
+
+    if request.method == "POST":
+        form = LabworkDemandForm(request.POST, clinic=clinic)
+        formset = LabworkItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            items = [
+                {
+                    "test_name": f.cleaned_data["test_name"],
+                    "urgency": f.cleaned_data["urgency"],
+                    "clinical_indication": f.cleaned_data.get("clinical_indication", ""),
+                }
+                for f in formset
+                if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("test_name")
+            ]
+
+            demand = LabworkDemandService.create_demand(
+                clinic=clinic,
+                patient=form.cleaned_data["patient"],
+                doctor=form.cleaned_data["doctor"],
+                items=items,
+            )
+
+            messages.success(request, "Labwork demand created")
+            return redirect("records:labwork_demand_print", pk=demand.pk)
+
+    else:
+        form = LabworkDemandForm(clinic=clinic)
+        formset = LabworkItemFormSet()
+
+    return render(request, "records/labwork_demand_add.html", {"form": form, "formset": formset})
+
+
+@login_required
+def labwork_demand_print(request, pk):
+    clinic = _require_clinic(request)
+
+    demand = get_object_or_404(
+        LabworkDemand.objects.for_clinic(clinic).select_related("patient", "doctor__user", "clinic"), #type:ignore
+        pk=pk,
+    )
+
+    html_string = render_to_string("records/labwork_demand_pdf.html", {
+        "demand": demand, "clinic": clinic, "doctor": demand.doctor, "items": demand.items.all(),
+    })
+
+    from weasyprint import HTML
+    pdf_bytes = HTML(string=html_string).write_pdf()
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="labwork_demand_{demand.pk}.pdf"'
     return response
