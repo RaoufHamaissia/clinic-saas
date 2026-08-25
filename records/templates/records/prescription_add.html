@@ -52,4 +52,41 @@
             </form>
         </div>
     </div>
+    <datalist id="medication-suggestions"></datalist>
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const datalist = document.getElementById("medication-suggestions");
+        let debounceTimer;
+
+        document.addEventListener("input", function (event) {
+            if (!event.target.classList.contains("medication-name-input")) {
+                return;
+            }
+
+            const query = event.target.value.trim();
+
+            clearTimeout(debounceTimer);
+
+            if (query.length < 2) {
+                return;
+            }
+
+            debounceTimer = setTimeout(function () {
+                fetch("{% url 'records:medication_suggest' %}?q=" + encodeURIComponent(query))
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) {
+                        datalist.innerHTML = "";
+                        data.results.forEach(function (name) {
+                            const option = document.createElement("option");
+                            option.value = name;
+                            datalist.appendChild(option);
+                        });
+                    });
+            }, 250);
+        });
+    })();
+</script>
+{% endblock extra_js %}
