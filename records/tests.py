@@ -9,6 +9,11 @@ from patients.models import Patient
 from .models import Prescription, PrescriptionItem
 from .services import PrescriptionService
 
+
+
+from .services import MedicationService
+from .models import Medication
+
 # Create your tests here.
 
 class PrescriptionServiceTests(TestCase):
@@ -190,3 +195,77 @@ class PrescriptionViewTests(TestCase):
         response = self.client.get(reverse("records:prescription_print", args=[other_prescription.pk]))
 
         self.assertEqual(response.status_code, 404)
+
+
+
+class MedicationServiceTests(TestCase):
+
+    def test_register_creates_new_medication(self):
+        MedicationService.register("Amoxicillin")
+
+        self.assertTrue(Medication.objects.filter(name="Amoxicillin").exists())
+
+    def test_register_is_case_insensitive_dedup(self):
+        MedicationService.register("Amoxicillin")
+        MedicationService.register("amoxicillin")
+        MedicationService.register("AMOXICILLIN")
+
+        self.assertEqual(Medication.objects.count(), 1)
+
+    def test_register_ignores_blank_name(self):
+        MedicationService.register("   ")
+
+        self.assertEqual(Medication.objects.count(), 0)
+
+    def test_suggest_filters_by_query(self):
+        Medication.objects.create(name="Amoxicillin")
+        Medication.objects.create(name="Paracetamol")
+
+        results = MedicationService.suggest("amox")
+
+        self.assertEqual(results.count(), 1)
+        self.assertEqual(results.first().name, "Amoxicillin") #type:ignore
+
+    def test_suggest_returns_empty_for_blank_query(self):
+        Medication.objects.create(name="Amoxicillin")
+
+        results = MedicationService.suggest("")
+
+        self.assertEqual(results.count(), 0)
+
+    def test_create_prescription_registers_medications_globally(self):
+        clinic = Clinic.objects.create(name="Clinic A")
+        specialty = Specialty.objects.create(name="General Medicine")
+        doctor_user = User.objects.create_user(email="d@example.com", password="pw", clinic=clinic) #type:ignore
+        doctor = DoctorProfile.objects.create(user=doctor_user, clinic=clinic, specialty=specialty)
+        patient = Patient.objects.create(clinic=clinic, first_name="John", last_name="A")
+
+        PrescriptionService.create_prescription(
+            clinic=clinic, patient=patient, doctor=doctor,
+            items=[{"medication_name": "Ibuprofen", "dosage": "", "frequency": "", "duration": "", "instructions": ""}],
+        )
+
+        self.assertTrue(Medication.objects.filter(name="Ibuprofen").exists())
+
+
+class MedicationSuggestViewTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.user = User.objects.create_user( #type:ignore
+            email="staff@example.com", password="StrongPassword123!", clinic=self.clinic
+        )
+        Medication.objects.create(name="Amoxicillin")
+        Medication.objects.create(name="Paracetamol")
+
+    def test_suggest_requires_login(self):
+        response = self.client.get(reverse("records:medication_suggest"), {"q": "amox"})
+        self.assertEqual(response.status_code, 302)
+
+    def test_suggest_returns_matching_names(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("records:medication_suggest"), {"q": "amox"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"results": ["Amoxicillin"]})
