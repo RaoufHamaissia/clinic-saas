@@ -1,0 +1,36 @@
+{% extends "core/base.html" %}
+{% block title %}New Labwork Demand | MediCore{% endblock title %}
+{% block page_title %}New labwork demand{% endblock page_title %}
+
+{% block content %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                {{ formset.management_form }}
+
+                <div class="mb-3">
+                    {{ form.patient.label_tag }}
+                    {{ form.patient }}
+                </div>
+                <div class="mb-4">
+                    {{ form.doctor.label_tag }}
+                    {{ form.doctor }}
+                </div>
+
+                <h5 class="fw-semibold mb-3">Tests requested</h5>
+
+                {% for item_form in formset %}
+                    <div class="row g-2 mb-2 border-bottom pb-2">
+                        <div class="col-md-4">{{ item_form.test_name }}</div>
+                        <div class="col-md-2">{{ item_form.urgency }}</div>
+                        <div class="col-md-6">{{ item_form.clinical_indication }}</div>
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary mt-3">Create & print</button>
+                <a href="{% url 'records:labwork_demand_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
