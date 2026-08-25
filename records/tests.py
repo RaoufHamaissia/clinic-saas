@@ -14,6 +14,11 @@ from .services import PrescriptionService
 from .services import MedicationService
 from .models import Medication
 
+
+from .models import DoctorNote
+from .services import DoctorNoteService
+
+
 # Create your tests here.
 
 class PrescriptionServiceTests(TestCase):
@@ -269,3 +274,116 @@ class MedicationSuggestViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"results": ["Amoxicillin"]})
+
+
+
+class DoctorNoteServiceTests(TestCase):
+
+    def setUp(self):
+        self.clinic_a = Clinic.objects.create(name="Clinic A")
+        self.clinic_b = Clinic.objects.create(name="Clinic B")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+
+        self.doctor_user_a = User.objects.create_user(email="doc-a@example.com", password="pw", clinic=self.clinic_a) #type:ignore
+        self.doctor_a = DoctorProfile.objects.create(user=self.doctor_user_a, clinic=self.clinic_a, specialty=self.specialty)
+
+        self.doctor_user_b = User.objects.create_user(email="doc-b@example.com", password="pw", clinic=self.clinic_b) #type:ignore
+        self.doctor_b = DoctorProfile.objects.create(user=self.doctor_user_b, clinic=self.clinic_b, specialty=self.specialty)
+
+        self.patient_a = Patient.objects.create(clinic=self.clinic_a, first_name="John", last_name="A")
+        self.patient_b = Patient.objects.create(clinic=self.clinic_b, first_name="Jane", last_name="B")
+
+    def test_create_note(self):
+        note = DoctorNoteService.create_note(
+            clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a,
+            content="Patient reports mild fever, prescribed rest and fluids.",
+        )
+
+        self.assertEqual(note.clinic, self.clinic_a)
+        self.assertIn("mild fever", note.content)
+
+    def test_create_note_rejects_cross_clinic_patient(self):
+        with self.assertRaises(ValueError):
+            DoctorNoteService.create_note(
+                clinic=self.clinic_a, patient=self.patient_b, doctor=self.doctor_a, content="test"
+            )
+
+    def test_create_note_rejects_cross_clinic_doctor(self):
+        with self.assertRaises(ValueError):
+            DoctorNoteService.create_note(
+                clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_b, content="test"
+            )
+
+    def test_get_for_clinic_only_returns_own_notes(self):
+        DoctorNoteService.create_note(clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a, content="A")
+        DoctorNoteService.create_note(clinic=self.clinic_b, patient=self.patient_b, doctor=self.doctor_b, content="B")
+
+        results = DoctorNoteService.get_for_clinic(self.clinic_a)
+
+        self.assertEqual(results.count(), 1)
+        self.assertEqual(results.first().clinic, self.clinic_a)
+
+
+class DoctorNoteViewTests(TestCase):
+
+    def setUp(self):
+        self.clinic_a = Clinic.objects.create(name="Clinic A")
+        self.clinic_b = Clinic.objects.create(name="Clinic B")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+
+        self.user = User.objects.create_user(email="staff-a@example.com", password="StrongPassword123!", clinic=self.clinic_a) #type:ignore
+        self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic_a, specialty=self.specialty)
+        self.patient = Patient.objects.create(clinic=self.clinic_a, first_name="John", last_name="A")
+
+    def test_add_note_creates_record_and_redirects_to_print(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("records:note_add"), {
+            "patient": self.patient.pk,
+            "doctor": self.doctor.pk,
+            "content": "Follow-up in 2 weeks.",
+        })
+
+        note = DoctorNote.objects.get(patient=self.patient)
+
+        self.assertRedirects(response, reverse("records:note_print", args=[note.pk]))
+        self.assertEqual(note.content, "Follow-up in 2 weeks.")
+
+    def test_add_note_requires_content(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("records:note_add"), {
+            "patient": self.patient.pk,
+            "doctor": self.doctor.pk,
+            "content": "",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["form"].is_valid())
+
+    def test_note_print_returns_pdf(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        note = DoctorNoteService.create_note(
+            clinic=self.clinic_a, patient=self.patient, doctor=self.doctor, content="Test note."
+        )
+
+        response = self.client.get(reverse("records:note_print", args=[note.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response.content.startswith(b"%PDF"))
+
+    def test_note_print_rejects_note_from_other_clinic(self):
+        other_user = User.objects.create_user(email="doc-b@example.com", password="pw", clinic=self.clinic_b) #type:ignore
+        other_doctor = DoctorProfile.objects.create(user=other_user, clinic=self.clinic_b, specialty=self.specialty)
+        other_patient = Patient.objects.create(clinic=self.clinic_b, first_name="Jane", last_name="B")
+        other_note = DoctorNoteService.create_note(
+            clinic=self.clinic_b, patient=other_patient, doctor=other_doctor, content="Other clinic note."
+        )
+
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("records:note_print", args=[other_note.pk]))
+
+        self.assertEqual(response.status_code, 404)
