@@ -24,7 +24,7 @@ class MedicationService:
             return None
 
         existing = Medication.objects.filter(name__iexact=name).first()
-        
+
         if existing:
             return existing
         return Medication.objects.create(name=name)
@@ -54,5 +54,8 @@ class PrescriptionService:
         PrescriptionItem.objects.bulk_create([
             PrescriptionItem(prescription=prescription, **item) for item in items
         ])
+
+        for item in items:
+            MedicationService.register(item["medication_name"])
 
         return prescription
