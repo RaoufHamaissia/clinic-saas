@@ -1,4 +1,6 @@
-from .models import Prescription, PrescriptionItem, Medication, DoctorNote
+from .models import (Prescription, PrescriptionItem, Medication, DoctorNote, ProcedureItem, ProcedureReport,
+                    ProcedureReport, ProcedureItem, LabworkDemand, LabworkItem,
+                     )
 
 
 class MedicationService:
@@ -65,6 +67,7 @@ class PrescriptionService:
 
 class DoctorNoteService:
 
+
     @staticmethod
     def get_for_clinic(clinic):
         return DoctorNote.objects.for_clinic(clinic) #type:ignore
@@ -84,3 +87,60 @@ class DoctorNoteService:
         return DoctorNote.objects.create(
             clinic=clinic, patient=patient, doctor=doctor, content=content
         )
+
+
+
+class ProcedureReportService:
+
+    @staticmethod
+    def get_for_clinic(clinic):
+        return ProcedureReport.objects.for_clinic(clinic) #type:ignore
+
+    @staticmethod
+    def get_report(clinic, report_id):
+        return ProcedureReport.objects.for_clinic(clinic).get(pk=report_id) #type:ignore
+
+    @staticmethod
+    def create_report(*, clinic, patient, doctor, notes="", items):
+        if patient.clinic_id != clinic.id:
+            raise ValueError("Patient does not belong to this clinic.")
+
+        if doctor.clinic_id != clinic.id:
+            raise ValueError("Doctor does not belong to this clinic.")
+
+        report = ProcedureReport.objects.create(
+            clinic=clinic, patient=patient, doctor=doctor, notes=notes
+        )
+
+        ProcedureItem.objects.bulk_create([
+            ProcedureItem(report=report, **item) for item in items
+        ])
+
+        return report
+
+
+class LabworkDemandService:
+
+    @staticmethod
+    def get_for_clinic(clinic): 
+        return LabworkDemand.objects.for_clinic(clinic) #type:ignore
+
+    @staticmethod
+    def get_demand(clinic, demand_id):
+        return LabworkDemand.objects.for_clinic(clinic).get(pk=demand_id) #type:ignore
+
+    @staticmethod
+    def create_demand(*, clinic, patient, doctor, items):
+        if patient.clinic_id != clinic.id:
+            raise ValueError("Patient does not belong to this clinic.")
+
+        if doctor.clinic_id != clinic.id:
+            raise ValueError("Doctor does not belong to this clinic.")
+
+        demand = LabworkDemand.objects.create(clinic=clinic, patient=patient, doctor=doctor)
+
+        LabworkItem.objects.bulk_create([
+            LabworkItem(demand=demand, **item) for item in items
+        ])
+
+        return demand
