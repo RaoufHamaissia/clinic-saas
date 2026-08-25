@@ -6,11 +6,20 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 
 from .forms import PrescriptionForm, PrescriptionItemFormSet
-from .services import PrescriptionService
+from .services import PrescriptionService, MedicationService
 from .models import Prescription
+
+from django.http import JsonResponse
 
 
 # Create your views here.
+
+@login_required
+def medication_suggest(request):
+    query = request.GET.get("q", "")
+    medications = MedicationService.suggest(query)
+
+    return JsonResponse({"results": [m.name for m in medications]})
 
 def _require_clinic(request):
     clinic = request.user.clinic
