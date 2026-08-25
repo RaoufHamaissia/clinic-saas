@@ -34,9 +34,14 @@ class PrescriptionForm(forms.Form):
 class PrescriptionItemForm(forms.Form):
 
     medication_name = forms.CharField(
-            max_length=200,
-            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Medication name"})
-        )
+        max_length=200,
+        widget=forms.TextInput(attrs={
+            "class": "form-control medication-name-input",
+            "placeholder": "Medication name",
+            "list": "medication-suggestions",
+            "autocomplete": "off",
+        })
+    )
     dosage = forms.CharField(
             max_length=100, required=False,
             widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Dosage"})
