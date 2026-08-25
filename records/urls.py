@@ -17,7 +17,11 @@ urlpatterns = [
     path("procedure-reports/", views.procedure_report_list, name="procedure_report_list"),
     path("procedure-reports/add/", views.add_procedure_report, name="procedure_report_add"),
     path("procedure-reports/<int:pk>/print/", views.procedure_report_print, name="procedure_report_print"),
+
     path("labwork-demands/", views.labwork_demand_list, name="labwork_demand_list"),
     path("labwork-demands/add/", views.add_labwork_demand, name="labwork_demand_add"),
     path("labwork-demands/<int:pk>/print/", views.labwork_demand_print, name="labwork_demand_print"),
+
+    path("document-profile/", views.edit_document_profile, name="edit_document_profile"),
+
 ]
