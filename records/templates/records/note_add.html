@@ -1,0 +1,41 @@
+{% extends "core/base.html" %}
+
+{% block title %}New Note | MediCore{% endblock title %}
+{% block page_title %}New doctor note{% endblock page_title %}
+
+{% block content %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    {{ form.patient.label_tag }}
+                    {{ form.patient }}
+                    {% for error in form.patient.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.doctor.label_tag }}
+                    {{ form.doctor }}
+                    {% for error in form.doctor.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    {{ form.content.label_tag }}
+                    {{ form.content }}
+                    {% for error in form.content.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save & print</button>
+                <a href="{% url 'records:note_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
