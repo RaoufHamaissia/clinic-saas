@@ -48,3 +48,23 @@ class PrescriptionItem(models.Model):
 
     def __str__(self):
         return self.medication_name
+
+
+class Medication(models.Model):
+    """
+    Global (cross-clinic) reference list of medication names, built 
+    organically as doctors write prescriptions. Powers autocomplete only-
+    PrescriptionItem.medication_name stays free text, never a FK, so a
+    doctor can always type something new without being blocked by this list.
+    """
+    name = models.CharField(max_length=200, unique=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    
