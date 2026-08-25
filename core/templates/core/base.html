@@ -99,6 +99,13 @@
                             Labwork Demands
                         </a>
                     </li>
+                    {% if request.user.role == "doctor" %}
+                    <li class="nav-item">
+                        <a href="{% url "records:edit_document_profile" %}" class="nav-link">
+                            My Document Profile
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             Settings
