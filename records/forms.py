@@ -131,6 +131,7 @@ class LabworkDemandForm(forms.Form):
 class LabworkItemForm(forms.Form):
     test_name = forms.CharField(
         max_length=200,
+        required=False,
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Test name"})
     )
     urgency = forms.ChoiceField(

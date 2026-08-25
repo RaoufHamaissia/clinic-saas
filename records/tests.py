@@ -387,3 +387,168 @@ class DoctorNoteViewTests(TestCase):
         response = self.client.get(reverse("records:note_print", args=[other_note.pk]))
 
         self.assertEqual(response.status_code, 404)
+
+
+
+from .models import ProcedureReport, ProcedureItem, LabworkDemand, LabworkItem
+from .services import ProcedureReportService, LabworkDemandService
+
+class ProcedureReportServiceTests(TestCase):
+
+    def setUp(self):
+        self.clinic_a = Clinic.objects.create(name="Clinic A")
+        self.clinic_b = Clinic.objects.create(name="Clinic B")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.doctor_user_a = User.objects.create_user(email="doc-a@example.com", password="pw", clinic=self.clinic_a) #type:ignore
+        self.doctor_a = DoctorProfile.objects.create(user=self.doctor_user_a, clinic=self.clinic_a, specialty=self.specialty)
+        self.doctor_user_b = User.objects.create_user(email="doc-b@example.com", password="pw", clinic=self.clinic_b) #type:ignore
+        self.doctor_b = DoctorProfile.objects.create(user=self.doctor_user_b, clinic=self.clinic_b, specialty=self.specialty)
+        self.patient_a = Patient.objects.create(clinic=self.clinic_a, first_name="John", last_name="A")
+        self.patient_b = Patient.objects.create(clinic=self.clinic_b, first_name="Jane", last_name="B")
+
+    def test_create_report_with_items(self):
+        report = ProcedureReportService.create_report(
+            clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a, notes="Routine check",
+            items=[{"procedure_name": "Wound dressing", "findings": "Healing well"}],
+        )
+
+        self.assertEqual(report.items.count(), 1) #type:ignore
+        self.assertEqual(report.notes, "Routine check")
+
+    def test_create_report_rejects_cross_clinic_patient(self):
+        with self.assertRaises(ValueError):
+            ProcedureReportService.create_report(
+                clinic=self.clinic_a, patient=self.patient_b, doctor=self.doctor_a, items=[]
+            )
+
+    def test_get_for_clinic_isolated(self):
+        ProcedureReportService.create_report(clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a, items=[])
+        ProcedureReportService.create_report(clinic=self.clinic_b, patient=self.patient_b, doctor=self.doctor_b, items=[])
+
+        results = ProcedureReportService.get_for_clinic(self.clinic_a)
+        self.assertEqual(results.count(), 1)
+
+
+class LabworkDemandServiceTests(TestCase):
+
+    def setUp(self):
+        self.clinic_a = Clinic.objects.create(name="Clinic A")
+        self.clinic_b = Clinic.objects.create(name="Clinic B")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.doctor_user_a = User.objects.create_user(email="doc-a@example.com", password="pw", clinic=self.clinic_a) #type:ignore
+        self.doctor_a = DoctorProfile.objects.create(user=self.doctor_user_a, clinic=self.clinic_a, specialty=self.specialty)
+        self.doctor_user_b = User.objects.create_user(email="doc-b@example.com", password="pw", clinic=self.clinic_b) #type:ignore
+        self.doctor_b = DoctorProfile.objects.create(user=self.doctor_user_b, clinic=self.clinic_b, specialty=self.specialty)
+        self.patient_a = Patient.objects.create(clinic=self.clinic_a, first_name="John", last_name="A")
+        self.patient_b = Patient.objects.create(clinic=self.clinic_b, first_name="Jane", last_name="B")
+
+    def test_create_demand_with_items(self):
+        demand = LabworkDemandService.create_demand(
+            clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a,
+            items=[
+                {"test_name": "Complete Blood Count", "urgency": LabworkDemand.Urgency.URGENT, "clinical_indication": "Suspected infection"},
+                {"test_name": "Lipid Panel", "urgency": LabworkDemand.Urgency.ROUTINE, "clinical_indication": ""},
+            ],
+        )
+
+        self.assertEqual(demand.items.count(), 2) #type:ignore
+        self.assertEqual(demand.items.first().urgency, LabworkDemand.Urgency.URGENT) #type:ignore
+
+    def test_create_demand_rejects_cross_clinic_doctor(self):
+        with self.assertRaises(ValueError):
+            LabworkDemandService.create_demand(
+                clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_b, items=[]
+            )
+
+    def test_get_for_clinic_isolated(self):
+        LabworkDemandService.create_demand(clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a, items=[])
+        LabworkDemandService.create_demand(clinic=self.clinic_b, patient=self.patient_b, doctor=self.doctor_b, items=[])
+
+        results = LabworkDemandService.get_for_clinic(self.clinic_a)
+        self.assertEqual(results.count(), 1)
+
+
+class ProcedureAndLabworkViewTests(TestCase):
+
+    def setUp(self):
+        self.clinic_a = Clinic.objects.create(name="Clinic A")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.user = User.objects.create_user(email="staff-a@example.com", password="StrongPassword123!", clinic=self.clinic_a) #type:ignore
+        self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic_a, specialty=self.specialty)
+        self.patient = Patient.objects.create(clinic=self.clinic_a, first_name="John", last_name="A")
+
+    def _formset_management(self, prefix, total, initial=0):
+        return {
+            f"{prefix}-TOTAL_FORMS": str(total),
+            f"{prefix}-INITIAL_FORMS": str(initial),
+            f"{prefix}-MIN_NUM_FORMS": "0",
+            f"{prefix}-MAX_NUM_FORMS": "1000",
+        }
+
+    def test_add_procedure_report_creates_record(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        data = {
+            "patient": self.patient.pk,
+            "doctor": self.doctor.pk,
+            "notes": "",
+            **self._formset_management("form", 2),
+            "form-0-procedure_name": "Suture removal",
+            "form-0-findings": "No complications",
+            "form-1-procedure_name": "",
+            "form-1-findings": "",
+        }
+
+        response = self.client.post(reverse("records:procedure_report_add"), data)
+
+        report = ProcedureReport.objects.get(patient=self.patient)
+        self.assertRedirects(response, reverse("records:procedure_report_print", args=[report.pk]))
+        self.assertEqual(report.items.count(), 1) #type:ignore
+
+    def test_procedure_report_print_returns_pdf(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        report = ProcedureReportService.create_report(
+            clinic=self.clinic_a, patient=self.patient, doctor=self.doctor,
+            items=[{"procedure_name": "Suture removal", "findings": ""}],
+        )
+
+        response = self.client.get(reverse("records:procedure_report_print", args=[report.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.content.startswith(b"%PDF"))
+
+    def test_add_labwork_demand_creates_record(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        data = {
+            "patient": self.patient.pk,
+            "doctor": self.doctor.pk,
+            **self._formset_management("form", 2),
+            "form-0-test_name": "Complete Blood Count",
+            "form-0-urgency": "urgent",
+            "form-0-clinical_indication": "Suspected infection",
+            "form-1-test_name": "",
+            "form-1-urgency": "routine",
+            "form-1-clinical_indication": "",
+        }
+
+        response = self.client.post(reverse("records:labwork_demand_add"), data)
+
+        demand = LabworkDemand.objects.get(patient=self.patient)
+        self.assertRedirects(response, reverse("records:labwork_demand_print", args=[demand.pk]))
+        self.assertEqual(demand.items.count(), 1) #type:ignore
+        self.assertEqual(demand.items.first().urgency, "urgent") #type:ignore
+
+    def test_labwork_demand_print_returns_pdf(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        demand = LabworkDemandService.create_demand(
+            clinic=self.clinic_a, patient=self.patient, doctor=self.doctor,
+            items=[{"test_name": "CBC", "urgency": "routine", "clinical_indication": ""}],
+        )
+
+        response = self.client.get(reverse("records:labwork_demand_print", args=[demand.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.content.startswith(b"%PDF"))
