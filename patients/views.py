@@ -1,10 +1,15 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
+from appointments.services import AppointmentService
+from records.services import (
+    PrescriptionService, DoctorNoteService,ProcedureReportService, LabworkDemandService,
+)
 from .forms import PatientForm
 from .services import PatientService
+from .models import Patient
 
 
 # Create your views here.
@@ -59,3 +64,21 @@ def add_patient(request):
 
     context = {"form": form}
     return render(request, "patients/add.html", context)
+
+
+
+@login_required
+def patient_detail(request, pk):
+    clinic = _required_clinic(request)
+
+    patient = get_object_or_404(Patient.objects.for_clinic(clinic), pk=pk) #type:ignore
+
+    context = {
+        "patient": patient,
+        "appointments": AppointmentService.get_for_patient(clinic, patient),
+        "prescriptions": PrescriptionService.get_for_patient(clinic, patient),
+        "notes": DoctorNoteService.get_for_patient(clinic, patient),
+        "procedure_reports": ProcedureReportService.get_for_patient(clinic, patient),
+        "labwork_demands": LabworkDemandService.get_for_patient(clinic, patient),
+    }
+    return render(request, "patients/detail.html", context)
