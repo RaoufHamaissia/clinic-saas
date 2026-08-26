@@ -552,3 +552,85 @@ class ProcedureAndLabworkViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.content.startswith(b"%PDF"))
+
+
+from .models import DoctorDocumentProfile
+from django.core.files.uploadedfile import SimpleUploadedFile
+import io
+from PIL import Image
+
+
+class DocumentProfileViewTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+
+        self.doctor_user = User.objects.create_user( #type:ignore
+            email="doc@example.com", password="StrongPassword123!",
+            clinic=self.clinic, role=User.Role.DOCTOR,
+        )
+        self.doctor = DoctorProfile.objects.create(
+            user=self.doctor_user, clinic=self.clinic, specialty=self.specialty
+        )
+
+        self.secretary_user = User.objects.create_user( #type:ignore
+            email="sec@example.com", password="StrongPassword123!",
+            clinic=self.clinic, role=User.Role.SECRETARY,
+        )
+
+    def test_requires_login(self):
+        response = self.client.get(reverse("records:edit_document_profile"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_secretary_cannot_access(self):
+        self.client.login(email="sec@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("records:edit_document_profile"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_doctor_gets_auto_created_profile_on_first_visit(self):
+        self.client.login(email="doc@example.com", password="StrongPassword123!")
+
+        self.assertFalse(DoctorDocumentProfile.objects.filter(doctor=self.doctor).exists())
+
+        response = self.client.get(reverse("records:edit_document_profile"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(DoctorDocumentProfile.objects.filter(doctor=self.doctor).exists())
+
+    def test_doctor_can_update_title_and_registration(self):
+        self.client.login(email="doc@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("records:edit_document_profile"), {
+            "professional_title": "General Practitioner",
+            "registration_number": "REG-12345",
+        })
+
+        self.assertRedirects(response, reverse("records:edit_document_profile"))
+
+        profile = DoctorDocumentProfile.objects.get(doctor=self.doctor)
+        self.assertEqual(profile.professional_title, "General Practitioner")
+        self.assertEqual(profile.registration_number, "REG-12345")
+
+    def test_doctor_can_upload_signature(self):
+        self.client.login(email="doc@example.com", password="StrongPassword123!")
+
+        buffer = io.BytesIO()
+        Image.new("RGB", (10, 10), color="white").save(buffer, format="PNG")
+        buffer.seek(0)
+
+        fake_image = SimpleUploadedFile("signature.png", buffer.read(), content_type="image/png")
+
+        response = self.client.post(reverse("records:edit_document_profile"), {
+            "professional_title": "",
+            "registration_number": "",
+            "signature": fake_image,
+        })
+
+        self.assertRedirects(response, reverse("records:edit_document_profile"))
+
+        profile = DoctorDocumentProfile.objects.get(doctor=self.doctor)
+        self.assertTrue(profile.signature)
+        self.assertIn("signature", profile.signature.name) #type:ignore
