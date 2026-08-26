@@ -85,7 +85,13 @@ def add_prescription(request):
             return redirect("records:prescription_print", pk=prescription.pk)
 
     else:
-        form = PrescriptionForm(clinic=clinic)
+        initial = {}
+        patient_id = request.GET.get("patient")
+        if patient_id:
+            initial["patient"] = patient_id
+            
+        form = PrescriptionForm(clinic=clinic, initial=initial)
+
         formset = PrescriptionItemFormSet()
 
     context = {"form": form, "formset": formset}
@@ -149,7 +155,11 @@ def add_note(request):
             return redirect("records:note_print", pk=note.pk)
 
     else:
-        form = DoctorNoteForm(clinic=clinic)
+        initial = {}
+        patient_id = request.GET.get("patient")
+        if patient_id:
+            initial["patient"] = patient_id
+        form = DoctorNoteForm(clinic=clinic, initial=initial)
 
     context = {"form": form}
     return render(request, "records/note_add.html", context)
@@ -215,7 +225,11 @@ def add_procedure_report(request):
             return redirect("records:procedure_report_print", pk=report.pk)
 
     else:
-        form = ProcedureReportForm(clinic=clinic)
+        initial = {}
+        patient_id = request.GET.get("patient")
+        if patient_id:
+            initial["patient"] = patient_id
+        form = ProcedureReportForm(clinic=clinic, initial=initial)
         formset = ProcedureItemFormSet()
 
     return render(request, "records/procedure_report_add.html", {"form": form, "formset": formset})
