@@ -55,58 +55,56 @@
             <nav>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a href="{% url "core:dashboard" %}" class="nav-link active">
+                        <a href="{% url "core:dashboard" %}" class="nav-link {% if request.resolver_match.view_name == 'core:dashboard' %}active{% endif %}">
                             Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url "patients:list" %}" class="nav-link">
+                        <a href="{% url "patients:list" %}" class="nav-link {% if request.resolver_match.view_name == 'patients:list' or request.resolver_match.view_name == 'patients:add' %}active{% endif %}">
                             Patients
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url "appointments:day" %}" class="nav-link">
+                        <a href="{% url "appointments:day" %}" class="nav-link {% if request.resolver_match.app_name == 'appointments' %}active{% endif %}">
                             Appointments
                         </a>
                     </li>
-                    {% if request.user.is_clinic_admin %}
-                        <li class="nav-item">
-                            <a href="{% url "clinics:doctor_list" %}" class="nav-link">
-                                Doctors
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{% url "clinics:secretary_list" %}" class="nav-link">
-                                Secretaries
-                            </a>
-                        </li>
-                    {% endif %}
                     <li class="nav-item">
-                        <a href="{% url "records:prescription_list" %}" class="nav-link">
+                        <a href="{% url "clinics:doctor_list" %}" class="nav-link {% if request.resolver_match.view_name == 'clinics:doctor_list' or request.resolver_match.view_name == 'clinics:doctor_add' %}active{% endif %}">
+                            Doctors
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url "clinics:secretary_list" %}" class="nav-link {% if request.resolver_match.view_name == 'clinics:secretary_list' or request.resolver_match.view_name == 'clinics:secretary_add' %}active{% endif %}">
+                            Secretaries
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url "records:prescription_list" %}" class="nav-link {% if request.resolver_match.view_name == 'records:prescription_list' or request.resolver_match.view_name == 'records:prescription_add' or request.resolver_match.view_name == 'records:prescription_print' %}active{% endif %}">
                             Prescriptions
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url "records:note_list" %}" class="nav-link">
+                        <a href="{% url "records:note_list" %}" class="nav-link {% if request.resolver_match.view_name == 'records:note_list' or request.resolver_match.view_name == 'records:note_add' or request.resolver_match.view_name == 'records:note_print' %}active{% endif %}">
                             Doctor Notes
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url "records:procedure_report_list" %}" class="nav-link">
+                        <a href="{% url "records:procedure_report_list" %}" class="nav-link {% if request.resolver_match.view_name == 'records:procedure_report_list' or request.resolver_match.view_name == 'records:procedure_report_add' or request.resolver_match.view_name == 'records:procedure_report_print' %}active{% endif %}">
                             Procedure Reports
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url "records:labwork_demand_list" %}" class="nav-link">
+                        <a href="{% url "records:labwork_demand_list" %}" class="nav-link {% if request.resolver_match.view_name == 'records:labwork_demand_list' or request.resolver_match.view_name == 'records:labwork_demand_add' or request.resolver_match.view_name == 'records:labwork_demand_print' %}active{% endif %}">
                             Labwork Demands
                         </a>
                     </li>
                     {% if request.user.role == "doctor" %}
-                    <li class="nav-item">
-                        <a href="{% url "records:edit_document_profile" %}" class="nav-link">
-                            My Document Profile
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a href="{% url "records:edit_document_profile" %}" class="nav-link {% if request.resolver_match.view_name == 'records:edit_document_profile' %}active{% endif %}">
+                                My Document Profile
+                            </a>
+                        </li>
                     {% endif %}
                     <li class="nav-item">
                         <a href="#" class="nav-link">
