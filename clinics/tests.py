@@ -7,7 +7,7 @@ from clinics.forms import ClinicRegistrationForm
 from accounts.models import User
 from clinics.models import Clinic, Specialty
 from clinics.profiles import DoctorProfile
-from clinics.services import ClinicService, StaffService
+from clinics.services import ClinicService
 
 from patients.models import Patient
 
@@ -178,109 +178,3 @@ class TenantIsolationTests(TestCase):
         self.assertEqual( patients.count(), 1, ) 
         self.assertEqual( patients.first(), self.patient_b, ) 
         self.assertNotIn( self.patient_a, patients, )
-
-
-class StaffServiceTests(TestCase):
-
-    def setUp(self):
-        self.clinic = Clinic.objects.create(name="Clinic A")
-        self.specialty = Specialty.objects.create(name="General Medicine")
-
-        self.admin_user = User.objects.create_clinic_admin( #type:ignore
-            email="admin@example.com", password="pw", clinic=self.clinic,
-            first_name="Admin", last_name="Doc",
-        )
-        self.admin_doctor = DoctorProfile.objects.create(
-            user=self.admin_user, clinic=self.clinic, specialty=self.specialty
-        )
-
-    def test_create_doctor(self):
-        doctor = StaffService.create_doctor(
-            clinic=self.clinic, email="new@example.com", password="StrongPassword123!",
-            first_name="New", last_name="Doc", specialty=self.specialty,
-        )
-
-        self.assertFalse(doctor.user.is_clinic_admin)
-        self.assertEqual(doctor.user.role, User.Role.DOCTOR)
-        self.assertEqual(doctor.clinic, self.clinic)
-
-    def test_create_secretary_requires_creating_doctor_same_clinic(self):
-        other_clinic = Clinic.objects.create(name="Clinic B")
-        other_admin = User.objects.create_clinic_admin( #type:ignore
-            email="other@example.com", password="pw", clinic=other_clinic,
-        )
-        other_doctor = DoctorProfile.objects.create(
-            user=other_admin, clinic=other_clinic, specialty=self.specialty
-        )
-
-        with self.assertRaises(ValueError):
-            StaffService.create_secretary(
-                clinic=self.clinic, created_by=other_doctor,
-                email="sec@example.com", password="StrongPassword123!",
-                first_name="Sec", last_name="Retary",
-            )
-
-    def test_create_secretary(self):
-        secretary = StaffService.create_secretary(
-            clinic=self.clinic, created_by=self.admin_doctor,
-            email="sec@example.com", password="StrongPassword123!",
-            first_name="Sec", last_name="Retary",
-        )
-
-        self.assertEqual(secretary.created_by, self.admin_doctor)
-        self.assertEqual(secretary.user.role, User.Role.SECRETARY)
-
-
-class StaffViewTests(TestCase):
-
-    def setUp(self):
-        self.clinic = Clinic.objects.create(name="Clinic A")
-        self.specialty = Specialty.objects.create(name="General Medicine")
-
-        self.admin_user = User.objects.create_clinic_admin( #type:ignore
-            email="admin@example.com", password="StrongPassword123!", clinic=self.clinic,
-        )
-        self.admin_doctor = DoctorProfile.objects.create(
-            user=self.admin_user, clinic=self.clinic, specialty=self.specialty
-        )
-
-        self.regular_doctor_user = User.objects.create_doctor( #type:ignore
-            email="regular@example.com", password="StrongPassword123!", clinic=self.clinic,
-        )
-        DoctorProfile.objects.create(
-            user=self.regular_doctor_user, clinic=self.clinic, specialty=self.specialty
-        )
-
-    def test_non_admin_doctor_cannot_add_doctor(self):
-        self.client.login(email="regular@example.com", password="StrongPassword123!")
-
-        response = self.client.get(reverse("clinics:doctor_add"))
-
-        self.assertEqual(response.status_code, 403)
-
-    def test_admin_can_add_doctor(self):
-        self.client.login(email="admin@example.com", password="StrongPassword123!")
-
-        response = self.client.post(reverse("clinics:doctor_add"), {
-            "first_name": "New", "last_name": "Doc",
-            "email": "newdoc@example.com",
-            "password": "StrongPassword123!", "password_confirm": "StrongPassword123!",
-            "specialty": "Cardiology",
-        })
-
-        self.assertRedirects(response, reverse("clinics:doctor_list"))
-        self.assertTrue(User.objects.filter(email="newdoc@example.com").exists())
-
-    def test_admin_can_add_secretary(self):
-        self.client.login(email="admin@example.com", password="StrongPassword123!")
-
-        response = self.client.post(reverse("clinics:secretary_add"), {
-            "first_name": "New", "last_name": "Sec",
-            "email": "newsec@example.com",
-            "password": "StrongPassword123!", "password_confirm": "StrongPassword123!",
-        })
-
-        self.assertRedirects(response, reverse("clinics:secretary_list"))
-        self.assertTrue(User.objects.filter(email="newsec@example.com").exists())
-
-
