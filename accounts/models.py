@@ -38,6 +38,17 @@ class UserManager(BaseUserManager):
                                 first_name=first_name,
                                 last_name=last_name)
 
+    def create_doctor(self, *, email, password, clinic, first_name="", last_name=""):
+            """Non-admin doctor — distinct from create_clinic_admin (is_clinic_admin=False)."""
+            return self.create_user(email=email,
+                                    password=password,
+                                    clinic=clinic,
+                                    role=User.Role.DOCTOR,
+                                    is_clinic_admin=False,
+                                    first_name=first_name,
+                                    last_name=last_name)
+
+    
     def create_secretary(self, *, email, password, clinic, first_name="", last_name=""):
         return self.create_user(email=email,
                                         password=password,
@@ -47,6 +58,7 @@ class UserManager(BaseUserManager):
                                         first_name=first_name,
                                         last_name=last_name)
 
+    
 class User(AbstractUser):
     class Role(models.TextChoices):
         DOCTOR = "doctor", "Doctor"
@@ -54,7 +66,7 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, choices=Role.choices)
 
-    username = None
+    username = None #type:ignore
 
     email = models.EmailField(unique=True)
 
