@@ -127,12 +127,11 @@ class ClinicRegistrationForm(forms.Form):
         password = cleaned_data.get("password") #type:ignore
         password_confirm = cleaned_data.get("password_confirm") #type:ignore
 
-        if password and password_confirm:
-            if password != password_confirm:
-                self.add_error(
-                    "password_confirm",
-                    "Passwords do not match."
-                )
+        if (password and password_confirm) and (password != password_confirm): 
+            self.add_error(
+                "password_confirm",
+                "Passwords do not match."
+            )
 
         if password:
             try:

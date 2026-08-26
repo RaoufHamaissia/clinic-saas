@@ -3,9 +3,10 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.db import IntegrityError
 from django.shortcuts import redirect
+from django.http import JsonResponse
 
 from .forms import ClinicRegistrationForm
-from .services import ClinicService
+from .services import ClinicService, SpecialtyService
 
 # Create your views here.
 
@@ -40,3 +41,14 @@ def register_clinic(request):
 
     context = {"form": form}
     return render(request, "clinics/register.html", context)
+
+
+def specialty_suggest(request):
+    """
+    Deliberately no @login_required — this powers autocomplete on the
+    public clinic registration page, where nobody is authenticated yet.
+    """
+    query = request.GET.get("q", "")
+    specialties = SpecialtyService.suggest(query)
+
+    return JsonResponse({"results": [s.name for s in specialties]})
