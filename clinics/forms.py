@@ -5,6 +5,11 @@ from accounts.models import User
 
 from django.contrib.auth.password_validation import validate_password
 
+from .services import SpecialtyService
+
+
+
+
 class ClinicRegistrationForm(forms.Form):
     #-------------------
     # Clinic information
@@ -83,13 +88,15 @@ class ClinicRegistrationForm(forms.Form):
         )
     )   
 
-    specialty = forms.ModelChoiceField(
-        queryset=Specialty.objects.filter(is_active=True),
-        label="Specialty",
-        empty_label="Select a specialty",
-        widget=forms.Select(
+    specialty = forms.CharField(
+        max_length=150,
+        label="Specialty",        
+        widget=forms.TextInput(
             attrs={
-                "class": "form-select"
+                "class": "form-control specialty-input",
+                "placeholder": "Start typing e.g. Cardiology",
+                "list": "specialty-suggestions",
+                "autocomplete": "off",
             }
         )
     )
@@ -106,11 +113,19 @@ class ClinicRegistrationForm(forms.Form):
 
         return email
 
+    def clean_specialty(self):
+        name = self.cleaned_data["specialty"].strip()
+
+        if not name:
+            raise forms.ValidationError("Specialty is required.")
+
+        return SpecialtyService.get_or_create(name)
+
     def clean(self):
         cleaned_data = super().clean()
 
-        password = cleaned_data.get("password")
-        password_confirm = cleaned_data.get("password_confirm")
+        password = cleaned_data.get("password") #type:ignore
+        password_confirm = cleaned_data.get("password_confirm") #type:ignore
 
         if password and password_confirm:
             if password != password_confirm:
