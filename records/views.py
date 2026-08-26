@@ -47,7 +47,7 @@ def prescription_list(request):
     prescriptions = PrescriptionService.get_for_clinic(clinic)
 
     context = {"prescriptions": prescriptions}
-    return render(request, "records/prescription,_list.html")
+    return render(request, "records/prescription_list.html")
 
 
 @login_required
