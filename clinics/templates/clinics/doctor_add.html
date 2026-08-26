@@ -3,6 +3,7 @@
 {% block page_title %}Add doctor{% endblock page_title %}
 
 {% block content %}
+<a href="{% url 'clinics:doctor_list' %}" class="btn btn-sm btn-outline-secondary mb-3">← Back to doctors</a>
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
             <form method="post">

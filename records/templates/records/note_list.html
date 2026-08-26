@@ -4,6 +4,7 @@
 {% block page_title %}Doctor notes{% endblock page_title %}
 
 {% block content %}
+<a href="{% url 'core:dashboard' %}" class="btn btn-sm btn-outline-secondary mb-3">← Back to dashboard</a>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">Doctor notes</h2>
         <a href="{% url 'records:note_add' %}" class="btn btn-primary">New note</a>

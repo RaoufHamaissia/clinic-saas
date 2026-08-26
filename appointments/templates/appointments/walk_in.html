@@ -4,6 +4,7 @@
 {% block page_title %}Add walk-in{% endblock page_title %}
 
 {% block content %}
+<a href="{% url 'appointments:day' %}" class="btn btn-sm btn-outline-secondary mb-3">← Back to appointments</a>
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
             <form method="post">
