@@ -28,6 +28,7 @@
                             <th>Phone</th>
                             <th>Age</th>
                             <th>Reason for visit</th>
+                            <th>Patient Details</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -37,7 +38,13 @@
                                 <td>{{ patient.phone|default:"-" }}</td>
                                 <td>{{ patient.age|default:"-" }}</td>
                                 <td>{{ patient.reason_for_visit|default:"-" }}</td>
+                                <td>
+                                <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </td>
                             </tr>
+                            
                         {% endfor %}
                     </tbody>
                 </table>
