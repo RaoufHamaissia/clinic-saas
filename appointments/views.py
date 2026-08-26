@@ -6,8 +6,6 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 
-import appointments
-
 from .forms import AppointmentForm, WalkInForm
 from .services import AppointmentService
 from .models import Appointment
@@ -46,6 +44,7 @@ def add_appointment(request):
 
     if request.method == "POST":
         form = AppointmentForm(request.POST, clinic=clinic)
+        next_url = request.POST.get("next")
 
         if form.is_valid():
             AppointmentService.create_appointment(
@@ -58,12 +57,17 @@ def add_appointment(request):
 
             messages.success(request, "Appointment booked successfully")
 
-            return redirect("appointments:day")
+            return redirect(next_url or "appointments:day")
 
     else:
-        form = AppointmentForm(clinic=clinic)
+        initial = {}
+        patient_id = request.GET.get("patient")
+        if patient_id:
+            initial["patient"] = patient_id
 
-    context = {"form": form}
+        form = AppointmentForm(clinic=clinic, initial=initial)
+
+    context = {"form": form, "next_url": request.GET.get("next", "")}
     return render(request, "appointments/add.html", context)
 
 
@@ -73,6 +77,7 @@ def add_walk_in(request):
 
     if request.method == 'POST':
         form = WalkInForm(request.POST, clinic=clinic)
+        next_url = request.POST.get("next")
 
         if form.is_valid():
             AppointmentService.create_walk_in(
@@ -84,12 +89,17 @@ def add_walk_in(request):
 
             messages.success(request, "Walk-in added to today's list")
 
-            return redirect("appointments:day")
+            return redirect(next_url or "appointments:day")
 
     else: 
-        form = WalkInForm(clinic=clinic)
+        initial = {}
+        patient_id = request.GET.get("patient")
+        if patient_id:
+            initial["patient"] = patient_id
 
-    context = {"form": form}
+        form = WalkInForm(clinic=clinic, initial=initial)
+
+    context = {"form": form, "next_url": request.GET.get("next", "")}
     return render(request, "appointments/walk_in.html", context)
 
 
@@ -110,3 +120,5 @@ def update_status(request, pk):
         messages.success(request, "Status updated")
 
     return redirect("appointments:day")
+
+
