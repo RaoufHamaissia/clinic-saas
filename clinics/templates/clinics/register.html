@@ -151,6 +151,39 @@
         </div>
 
     </div>
+
+    <datalist id="specialty-suggestions"></datalist>
+
+    <script>
+        (function () {
+            const input = document.querySelector(".specialty-input");
+            const datalist = document.getElementById("specialty-suggestions");
+            let debounceTimer;
+
+            if (!input) return;
+
+            input.addEventListener("input", function () {
+                const query = input.value.trim();
+
+                clearTimeout(debounceTimer);
+
+                if (query.length < 2) return;
+
+                debounceTimer = setTimeout(function () {
+                    fetch("{% url 'clinics:specialty_suggest' %}?q=" + encodeURIComponent(query))
+                        .then(function (response) { return response.json(); })
+                        .then(function (data) {
+                            datalist.innerHTML = "";
+                            data.results.forEach(function (name) {
+                                const option = document.createElement("option");
+                                option.value = name;
+                                datalist.appendChild(option);
+                            });
+                        });
+                }, 250);
+            });
+        })();
+    </script>
     
 </body>
 </html>
