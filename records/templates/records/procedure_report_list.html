@@ -3,7 +3,9 @@
 {% block page_title %}Procedure reports{% endblock page_title %}
 
 {% block content %}
-<a href="{% url 'core:dashboard' %}" class="btn btn-sm btn-outline-secondary mb-3">← Back to dashboard</a>
+    {% url 'core:dashboard' as back_url %}
+    {% include "core/partials/back_button.html" with back_url=back_url back_label="Back to dashboard" %}
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">Procedure reports</h2>
         <a href="{% url 'records:procedure_report_add' %}" class="btn btn-primary">New report</a>

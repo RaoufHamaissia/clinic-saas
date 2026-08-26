@@ -4,7 +4,9 @@
 {% block page_title %}New doctor note{% endblock page_title %}
 
 {% block content %}
-<a href="{% url 'records:note_list' %}" class="btn btn-sm btn-outline-secondary mb-3">← Back to notes</a>
+    {% url '	records:note_list' as back_url %}
+    {% include "core/partials/back_button.html" with back_url=back_url back_label="Back to notes" %}
+
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
             <form method="post">
