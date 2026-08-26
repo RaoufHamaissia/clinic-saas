@@ -62,6 +62,10 @@ class PrescriptionService:
 
         return prescription
 
+    @staticmethod
+    def get_for_patient(clinic, patient):
+        return Prescription.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore
+
 
     
 
@@ -87,6 +91,11 @@ class DoctorNoteService:
         return DoctorNote.objects.create(
             clinic=clinic, patient=patient, doctor=doctor, content=content
         )
+
+    @staticmethod
+    def get_for_patient(clinic, patient):
+        return DoctorNote.objects.for_clinic(clinic).filter(patient=patient) #type:ignore
+
 
 
 
@@ -118,6 +127,11 @@ class ProcedureReportService:
 
         return report
 
+    @staticmethod
+    def get_for_patient(clinic, patient):
+        return ProcedureReport.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore
+
+
 
 class LabworkDemandService:
 
@@ -144,3 +158,7 @@ class LabworkDemandService:
         ])
 
         return demand
+
+    @staticmethod
+    def get_for_patient(clinic, patient):
+        return LabworkDemand.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore

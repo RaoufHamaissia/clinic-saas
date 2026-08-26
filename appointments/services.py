@@ -64,3 +64,12 @@ class AppointmentService:
         appointment.save(update_fields=["status", "updated_at"])
 
         return appointment
+
+    @staticmethod
+    def get_for_patient(clinic, patient):
+        return (
+            Appointment.objects
+            .for_clinic(clinic) #type:ignore
+            .filter(patient=patient)
+            .select_related("doctor__user")
+        )

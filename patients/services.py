@@ -1,7 +1,6 @@
 from .models import Patient
 
 
-
 class PatientService:
     @staticmethod
     def get_for_clinic(clinic):
@@ -33,4 +32,3 @@ class PatientService:
             address=address,
             reason_for_visit=reason_for_visit)
 
-    
