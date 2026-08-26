@@ -5,7 +5,7 @@ from accounts.models import User
 
 from .models import Clinic, Specialty
 
-from .profiles import DoctorProfile
+from .profiles import DoctorProfile, SecretaryProfile
 
 
 class SpecialtyService:
@@ -37,6 +37,42 @@ class SpecialtyService:
             return existing
 
         return Specialty.objects.create(name=name, is_active=True)
+
+
+class StaffService:
+
+    @staticmethod
+    @transaction.atomic
+    def create_doctor(*, clinic, email, password, first_name, last_name, specialty):
+        user = User.objects.create_doctor( #type:ignore
+            email=email, password=password, clinic=clinic,
+            first_name=first_name, last_name=last_name,
+        )
+
+        return DoctorProfile.objects.create(user=user, clinic=clinic, specialty=specialty)
+
+    @staticmethod
+    @transaction.atomic
+    def create_secretary(*, clinic, created_by, email, password, first_name, last_name):
+        if created_by.clinic_id != clinic.id:
+            raise ValueError("The creating doctor does not belong to this clinic.")
+
+        user = User.objects.create_secretary( #type:ignore
+            email=email, password=password, clinic=clinic,
+            first_name=first_name, last_name=last_name,
+        )
+
+        return SecretaryProfile.objects.create(user=user, clinic=clinic, created_by=created_by)
+
+    @staticmethod
+    def get_doctors(clinic):
+        return DoctorProfile.objects.filter(clinic=clinic).select_related("user", "specialty")
+
+    @staticmethod
+    def get_secretaries(clinic):
+        return SecretaryProfile.objects.filter(clinic=clinic).select_related("user", "created_by__user")
+
+
 
 
 class ClinicService:
