@@ -3,7 +3,8 @@ from django.db import transaction
 
 from accounts.models import User
 
-from .models import Clinic
+from .models import Clinic, Specialty
+
 from .profiles import DoctorProfile
 
 
@@ -66,3 +67,33 @@ class ClinicService:
 
 
 
+
+class SpecialtyService:
+
+    @staticmethod
+    def suggest(query, limit=10):
+        query = (query or "").strip()
+
+        if not query:
+            return Specialty.objects.none()
+
+        return Specialty.objects.filter(is_active=True, name__icontains=query)[:limit]
+
+    @staticmethod
+    def get_or_create(name):
+        """
+        Case-insensitive lookup/create, same pattern as records.MedicationService.
+        Matches against ALL specialties regardless of is_active, so typing an
+        existing-but-deactivated specialty's name reuses it rather than creating
+        a duplicate — is_active status itself is left untouched either way.
+        """
+        name = (name or "").strip()
+
+        if not name:
+            return None
+
+        existing = Specialty.objects.filter(name__iexact=name).first()
+        if existing:
+            return existing
+
+        return Specialty.objects.create(name=name, is_active=True)
