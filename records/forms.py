@@ -26,7 +26,7 @@ class PrescriptionForm(forms.Form):
     )
 
     def __init__(self, *args, clinic=None, **kwargs):
-        super().__init__(*args, *kwargs)
+        super().__init__(*args, **kwargs)
 
         if clinic is not None:
             self.fields["patient"].queryset = Patient.objects.for_clinic(clinic) #type:ignore

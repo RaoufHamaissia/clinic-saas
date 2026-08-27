@@ -201,6 +201,13 @@ class PrescriptionViewTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_add_prescription_prefills_patient_from_query_param(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("records:prescription_add") + f"?patient={self.patient.pk}")
+
+        self.assertEqual(str(response.context["form"].initial.get("patient")), str(self.patient.pk))
+
 
 
 class MedicationServiceTests(TestCase):

@@ -115,7 +115,8 @@ class AppointmentServiceTests(TestCase):
     def test_get_for_day_includes_both_scheduled_and_walk_in(self):
         AppointmentService.create_appointment(
             clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a,
-            scheduled_at=timezone.now() + timedelta(hours=1), created_by=self.doctor_user_a,
+            scheduled_at=timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=1),
+            created_by=self.doctor_user_a,
         )
         AppointmentService.create_walk_in(
             clinic=self.clinic_a, patient=self.patient_a,
@@ -301,3 +302,25 @@ class AppointmentViewTests(TestCase):
 
         other_appt.refresh_from_db()
         self.assertEqual(other_appt.status, Appointment.Status.WAITING)
+
+    def test_add_appointment_prefills_patient_from_query_param(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("appointments:add") + f"?patient={self.patient.pk}")
+
+        self.assertEqual(str(response.context["form"].initial.get("patient")), str(self.patient.pk))
+
+    def test_add_appointment_redirects_to_next_when_provided(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        future = timezone.now() + timedelta(days=1)
+        next_path = f"/patients/{self.patient.pk}/"
+
+        response = self.client.post(reverse("appointments:add"), {
+            "patient": self.patient.pk,
+            "doctor": self.doctor.pk,
+            "scheduled_at": future.strftime("%Y-%m-%dT%H:%M"),
+            "next": next_path,
+        })
+
+        self.assertRedirects(response, next_path, fetch_redirect_response=False)
