@@ -5,6 +5,23 @@ from core.models import ClinicOwnedModel
 
 # Create your models here.
 
+
+
+class AppointmentType(models.Model):
+    """
+    Global (cross-clinic) reference list, same pattern as records.Medication
+    and clinics.Specialty — grows organically as staff type new types,
+    autocomplete-suggested, never blocks entry of something new.
+    """
+    name = models.CharField(max_length=150, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
 class Appointment(ClinicOwnedModel):
     class Status(models.TextChoices):
         SCHEDULED = "scheduled", "Scheduled"
@@ -19,6 +36,10 @@ class Appointment(ClinicOwnedModel):
 
     doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="appointments")
 
+    type = models.ForeignKey(
+        AppointmentType, on_delete=models.PROTECT, related_name="appointments",
+        null=True, blank=True,
+    )
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_appointments")
 
     scheduled_at = models.DateTimeField()
