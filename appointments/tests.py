@@ -113,10 +113,11 @@ class AppointmentServiceTests(TestCase):
         self.assertEqual(today_a.first().clinic, self.clinic_a)
 
     def test_get_for_day_includes_both_scheduled_and_walk_in(self):
+        today_noon = timezone.now().replace(hour=12, minute=0, second=0, microsecond=0)
+
         AppointmentService.create_appointment(
             clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a,
-            scheduled_at=timezone.now().replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=1),
-            created_by=self.doctor_user_a,
+            scheduled_at=today_noon + timedelta(hours=1), created_by=self.doctor_user_a,
         )
         AppointmentService.create_walk_in(
             clinic=self.clinic_a, patient=self.patient_a,
