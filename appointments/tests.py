@@ -10,8 +10,8 @@ from clinics.models import Clinic, Specialty
 from clinics.profiles import DoctorProfile
 from patients.models import Patient
 
-from .models import Appointment
-from .services import AppointmentService
+from .models import Appointment, AppointmentType
+from .services import AppointmentService, AppointmentTypeService
 
 
 class AppointmentServiceTests(TestCase):
@@ -20,6 +20,7 @@ class AppointmentServiceTests(TestCase):
         self.clinic_a = Clinic.objects.create(name="Clinic A")
         self.clinic_b = Clinic.objects.create(name="Clinic B")
         self.specialty = Specialty.objects.create(name="General Medicine")
+        self.appt_type = AppointmentType.objects.create(name="Consultation")
 
         self.doctor_user_a = User.objects.create_user( #type:ignore
             email="doc-a@example.com", password="pw", clinic=self.clinic_a
@@ -47,18 +48,21 @@ class AppointmentServiceTests(TestCase):
             clinic=self.clinic_a,
             patient=self.patient_a,
             doctor=self.doctor_a,
+            appointment_type=self.appt_type,
             scheduled_at=timezone.now() + timedelta(days=1),
             created_by=self.doctor_user_a,
         )
 
         self.assertEqual(appt.status, Appointment.Status.SCHEDULED)
         self.assertFalse(appt.is_walk_in)
+        self.assertEqual(appt.type, self.appt_type)
 
     def test_create_walk_in_defaults_to_waiting(self):
         appt = AppointmentService.create_walk_in(
             clinic=self.clinic_a,
             patient=self.patient_a,
             doctor=self.doctor_a,
+            appointment_type=self.appt_type,
             created_by=self.doctor_user_a,
         )
 
@@ -71,6 +75,7 @@ class AppointmentServiceTests(TestCase):
                 clinic=self.clinic_a,
                 patient=self.patient_a,
                 doctor=self.doctor_b,
+                appointment_type=self.appt_type,
                 scheduled_at=timezone.now() + timedelta(days=1),
                 created_by=self.doctor_user_a,
             )
@@ -81,6 +86,7 @@ class AppointmentServiceTests(TestCase):
                 clinic=self.clinic_a,
                 patient=self.patient_b,
                 doctor=self.doctor_a,
+                appointment_type=self.appt_type,
                 scheduled_at=timezone.now() + timedelta(days=1),
                 created_by=self.doctor_user_a,
             )
@@ -91,6 +97,7 @@ class AppointmentServiceTests(TestCase):
                 clinic=self.clinic_a,
                 patient=self.patient_a,
                 doctor=self.doctor_a,
+                appointment_type=self.appt_type,
                 scheduled_at=timezone.now() - timedelta(days=1),
                 created_by=self.doctor_user_a,
             )
@@ -100,11 +107,11 @@ class AppointmentServiceTests(TestCase):
     def test_get_for_day_only_returns_own_clinic(self):
         AppointmentService.create_walk_in(
             clinic=self.clinic_a, patient=self.patient_a,
-            doctor=self.doctor_a, created_by=self.doctor_user_a,
+            doctor=self.doctor_a, appointment_type=self.appt_type, created_by=self.doctor_user_a,
         )
         AppointmentService.create_walk_in(
             clinic=self.clinic_b, patient=self.patient_b,
-            doctor=self.doctor_b, created_by=self.doctor_user_b,
+            doctor=self.doctor_b, appointment_type=self.appt_type, created_by=self.doctor_user_b,
         )
 
         today_a = AppointmentService.get_for_day(self.clinic_a, timezone.localdate())
@@ -117,21 +124,39 @@ class AppointmentServiceTests(TestCase):
 
         AppointmentService.create_appointment(
             clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a,
+            appointment_type=self.appt_type,
             scheduled_at=today_noon + timedelta(hours=1), created_by=self.doctor_user_a,
         )
         AppointmentService.create_walk_in(
             clinic=self.clinic_a, patient=self.patient_a,
-            doctor=self.doctor_a, created_by=self.doctor_user_a,
+            doctor=self.doctor_a, appointment_type=self.appt_type, created_by=self.doctor_user_a,
         )
 
         today_a = AppointmentService.get_for_day(self.clinic_a, timezone.localdate())
 
         self.assertEqual(today_a.count(), 2)
 
+    def test_get_for_patient_filters_by_search(self):
+        colonoscopy = AppointmentType.objects.create(name="Colonoscopy")
+
+        AppointmentService.create_walk_in(
+            clinic=self.clinic_a, patient=self.patient_a,
+            doctor=self.doctor_a, appointment_type=self.appt_type, created_by=self.doctor_user_a,
+        )
+        AppointmentService.create_walk_in(
+            clinic=self.clinic_a, patient=self.patient_a,
+            doctor=self.doctor_a, appointment_type=colonoscopy, created_by=self.doctor_user_a,
+        )
+
+        results = AppointmentService.get_for_patient(self.clinic_a, self.patient_a, search="colono")
+
+        self.assertEqual(results.count(), 1)
+        self.assertEqual(results.first().type, colonoscopy)
+
     def test_update_status_rejects_invalid_value(self):
         appt = AppointmentService.create_walk_in(
             clinic=self.clinic_a, patient=self.patient_a,
-            doctor=self.doctor_a, created_by=self.doctor_user_a,
+            doctor=self.doctor_a, appointment_type=self.appt_type, created_by=self.doctor_user_a,
         )
 
         with self.assertRaises(ValueError):
@@ -140,13 +165,32 @@ class AppointmentServiceTests(TestCase):
     def test_update_status_accepts_valid_value(self):
         appt = AppointmentService.create_walk_in(
             clinic=self.clinic_a, patient=self.patient_a,
-            doctor=self.doctor_a, created_by=self.doctor_user_a,
+            doctor=self.doctor_a, appointment_type=self.appt_type, created_by=self.doctor_user_a,
         )
 
         AppointmentService.update_status(appointment=appt, new_status=Appointment.Status.WITH_DOCTOR)
 
         appt.refresh_from_db()
         self.assertEqual(appt.status, Appointment.Status.WITH_DOCTOR)
+
+
+class AppointmentTypeServiceTests(TestCase):
+
+    def test_register_and_reuse_case_insensitively(self):
+        first = AppointmentTypeService.get_or_create("Colonoscopy")
+        second = AppointmentTypeService.get_or_create("colonoscopy")
+
+        self.assertEqual(first.pk, second.pk) #type:ignore
+        self.assertEqual(AppointmentType.objects.count(), 1)
+
+    def test_suggest_filters_by_query(self):
+        AppointmentType.objects.create(name="Colonoscopy")
+        AppointmentType.objects.create(name="Consultation")
+
+        results = AppointmentTypeService.suggest("colo")
+
+        self.assertEqual(results.count(), 1)
+        self.assertEqual(results.first().name, "Colonoscopy") #type:ignore
 
 
 class AppointmentViewTests(TestCase):
@@ -194,7 +238,7 @@ class AppointmentViewTests(TestCase):
 
         response = self.client.post(
             reverse("appointments:walk_in"),
-            {"patient": self.patient.pk, "doctor": self.doctor.pk},
+            {"patient": self.patient.pk, "doctor": self.doctor.pk, "type": "Consultation"},
         )
 
         self.assertRedirects(response, reverse("appointments:day"))
@@ -202,6 +246,7 @@ class AppointmentViewTests(TestCase):
         appt = Appointment.objects.get(patient=self.patient)
         self.assertEqual(appt.status, Appointment.Status.WAITING)
         self.assertTrue(appt.is_walk_in)
+        self.assertEqual(appt.type.name, "Consultation")
 
     def test_add_appointment_with_future_date_succeeds(self):
         self.client.login(email="staff-a@example.com", password="StrongPassword123!")
@@ -213,6 +258,7 @@ class AppointmentViewTests(TestCase):
             {
                 "patient": self.patient.pk,
                 "doctor": self.doctor.pk,
+                "type": "Consultation",
                 "scheduled_at": future.strftime("%Y-%m-%dT%H:%M"),
             },
         )
@@ -230,6 +276,7 @@ class AppointmentViewTests(TestCase):
             {
                 "patient": self.patient.pk,
                 "doctor": self.doctor.pk,
+                "type": "Consultation",
                 "scheduled_at": past.strftime("%Y-%m-%dT%H:%M"),
             },
         )
@@ -239,10 +286,29 @@ class AppointmentViewTests(TestCase):
         self.assertIn("scheduled_at", response.context["form"].errors)
         self.assertEqual(Appointment.objects.count(), 0)
 
+    def test_add_appointment_requires_type(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        future = timezone.now() + timedelta(days=1)
+
+        response = self.client.post(
+            reverse("appointments:add"),
+            {
+                "patient": self.patient.pk,
+                "doctor": self.doctor.pk,
+                "type": "",
+                "scheduled_at": future.strftime("%Y-%m-%dT%H:%M"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["form"].is_valid())
+        self.assertIn("type", response.context["form"].errors)
+
     def test_add_appointment_form_only_lists_own_clinic_patients_and_doctors(self):
         other_specialty = Specialty.objects.create(name="Cardiology")
-        other_user = User.objects.create_user( #type:ignore
-            email="doc-b@example.com", password="pw", clinic=self.clinic_b
+        other_user = User.objects.create_user(
+            email="doc-b@example.com", password="pw", clinic=self.clinic_b #type:ignore
         )
         other_doctor = DoctorProfile.objects.create(
             user=other_user, clinic=self.clinic_b, specialty=other_specialty
@@ -258,12 +324,36 @@ class AppointmentViewTests(TestCase):
         self.assertIn(self.doctor, form.fields["doctor"].queryset)
         self.assertNotIn(other_doctor, form.fields["doctor"].queryset)
 
+    def test_add_appointment_prefills_patient_from_query_param(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("appointments:add") + f"?patient={self.patient.pk}")
+
+        self.assertEqual(str(response.context["form"].initial.get("patient")), str(self.patient.pk))
+
+    def test_add_appointment_redirects_to_next_when_provided(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        future = timezone.now() + timedelta(days=1)
+        next_path = f"/patients/{self.patient.pk}/"
+
+        response = self.client.post(reverse("appointments:add"), {
+            "patient": self.patient.pk,
+            "doctor": self.doctor.pk,
+            "type": "Consultation",
+            "scheduled_at": future.strftime("%Y-%m-%dT%H:%M"),
+            "next": next_path,
+        })
+
+        self.assertRedirects(response, next_path, fetch_redirect_response=False)
+
     def test_update_status_via_post(self):
         self.client.login(email="staff-a@example.com", password="StrongPassword123!")
 
         appt = AppointmentService.create_walk_in(
             clinic=self.clinic_a, patient=self.patient,
-            doctor=self.doctor, created_by=self.user,
+            doctor=self.doctor, appointment_type=AppointmentType.objects.create(name="Consultation"),
+            created_by=self.user,
         )
 
         response = self.client.post(
@@ -289,7 +379,8 @@ class AppointmentViewTests(TestCase):
         )
         other_appt = AppointmentService.create_walk_in(
             clinic=self.clinic_b, patient=other_patient,
-            doctor=other_doctor, created_by=other_user,
+            doctor=other_doctor, appointment_type=AppointmentType.objects.create(name="Consultation"),
+            created_by=other_user,
         )
 
         self.client.login(email="staff-a@example.com", password="StrongPassword123!")
@@ -304,24 +395,25 @@ class AppointmentViewTests(TestCase):
         other_appt.refresh_from_db()
         self.assertEqual(other_appt.status, Appointment.Status.WAITING)
 
-    def test_add_appointment_prefills_patient_from_query_param(self):
-        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
 
-        response = self.client.get(reverse("appointments:add") + f"?patient={self.patient.pk}")
+class AppointmentTypeSuggestViewTests(TestCase):
 
-        self.assertEqual(str(response.context["form"].initial.get("patient")), str(self.patient.pk))
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.user = User.objects.create_user(
+            email="staff@example.com", password="StrongPassword123!", clinic=self.clinic #type:ignore
+        )
+        AppointmentType.objects.create(name="Colonoscopy")
+        AppointmentType.objects.create(name="Consultation")
 
-    def test_add_appointment_redirects_to_next_when_provided(self):
-        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+    def test_suggest_requires_login(self):
+        response = self.client.get(reverse("appointments:type_suggest"), {"q": "colo"})
+        self.assertEqual(response.status_code, 302)
 
-        future = timezone.now() + timedelta(days=1)
-        next_path = f"/patients/{self.patient.pk}/"
+    def test_suggest_returns_matching_names(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
 
-        response = self.client.post(reverse("appointments:add"), {
-            "patient": self.patient.pk,
-            "doctor": self.doctor.pk,
-            "scheduled_at": future.strftime("%Y-%m-%dT%H:%M"),
-            "next": next_path,
-        })
+        response = self.client.get(reverse("appointments:type_suggest"), {"q": "colo"})
 
-        self.assertRedirects(response, next_path, fetch_redirect_response=False)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"results": ["Colonoscopy"]})
