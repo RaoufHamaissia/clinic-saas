@@ -33,6 +33,14 @@
                     {% endfor %}
                 </div>
 
+                <div class="mb-3">
+                    {{ form.type.label_tag }}
+                    {{ form.type }}
+                    {% for error in form.type.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
                 <div class="mb-4">
                     {{ form.scheduled_at.label_tag }}
                     {{ form.scheduled_at }}
@@ -48,4 +56,31 @@
             </form>
         </div>
     </div>
+
+    <datalist id="appointment-type-suggestions"></datalist>
+    <script>
+        (function () {
+            const input = document.querySelector(".appointment-type-input");
+            const datalist = document.getElementById("appointment-type-suggestions");
+            let debounceTimer;
+            if (!input) return;
+            input.addEventListener("input", function () {
+                const query = input.value.trim();
+                clearTimeout(debounceTimer);
+                if (query.length < 2) return;
+                debounceTimer = setTimeout(function () {
+                    fetch("{% url 'appointments:type_suggest' %}?q=" + encodeURIComponent(query))
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            datalist.innerHTML = "";
+                            data.results.forEach(function (name) {
+                                const option = document.createElement("option");
+                                option.value = name;
+                                datalist.appendChild(option);
+                            });
+                        });
+                }, 250);
+            });
+        })();
+    </script>
 {% endblock content %}

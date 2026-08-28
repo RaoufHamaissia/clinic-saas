@@ -41,6 +41,7 @@
                                 <td>{{ appt.scheduled_at|time:"H:i" }}</td>
                                 <td>{{ appt.patient }}</td>
                                 <td>{{ appt.doctor }}</td>
+                                <td>{{ appt.type }}</td>
                                 <td>
                                     {% if appt.is_walk_in %}
                                         <span class="badge bg-warning text-dark">Walk-in</span>
