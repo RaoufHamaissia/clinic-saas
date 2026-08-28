@@ -40,62 +40,6 @@ def _require_clinic(request):
 
     return clinic
 
-@login_required
-def prescription_list(request):
-    clinic = _require_clinic(request)
-
-    prescriptions = PrescriptionService.get_for_clinic(clinic)
-
-    context = {"prescriptions": prescriptions}
-    return render(request, "records/prescription_list.html")
-
-
-@login_required
-def add_prescription(request):
-    clinic = _require_clinic(request)
-
-    if request.method == "POST":
-        form = PrescriptionForm(request.POST, clinic=clinic)
-        formset = PrescriptionItemFormSet(request.POST)
-
-        if form.is_valid() and formset.is_valid():
-            items = [
-                {
-                    "medication_name": f.cleaned_data["medication_name"],
-                    "dosage": f.cleaned_data["dosage"],
-                    "frequency": f.cleaned_data["frequency"],
-                    "duration": f.cleaned_data["duration"],
-                    "instructions": f.cleaned_data["instructions"],
-                }
-                for f in formset
-                if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("medication_name")
-            ]
-
-            prescription = PrescriptionService.create_prescription(
-                clinic=clinic,
-                patient=form.cleaned_data["patient"],
-                doctor=form.cleaned_data["doctor"],
-                notes=form.cleaned_data["notes"],
-                items=items,
-                
-            )
-
-            messages.success(request, "Prescription created")
-
-            return redirect("records:prescription_print", pk=prescription.pk)
-
-    else:
-        initial = {}
-        patient_id = request.GET.get("patient")
-        if patient_id:
-            initial["patient"] = patient_id
-            
-        form = PrescriptionForm(clinic=clinic, initial=initial)
-
-        formset = PrescriptionItemFormSet()
-
-    context = {"form": form, "formset": formset}
-    return render(request, "records/prescription_add.html", context)
 
 @login_required
 def prescription_print(request, pk):
@@ -127,45 +71,6 @@ def prescription_print(request, pk):
 
 
 @login_required
-def note_list(request):
-    clinic = _require_clinic(request)
-
-    notes = DoctorNoteService.get_for_clinic(clinic)
-
-    context = {"notes": notes}
-    return render(request, "records/note_list.html", context)
-
-@login_required
-def add_note(request):
-    clinic = _require_clinic(request)
-
-    if request.method == "POST":
-        form = DoctorNoteForm(request.POST, clinic=clinic)
-
-        if form.is_valid():
-            note = DoctorNoteService.create_note(
-                clinic=clinic,
-                patient=form.cleaned_data["patient"],
-                doctor=form.cleaned_data["doctor"],
-                content=form.cleaned_data["content"],
-            )
-
-            messages.success(request, "Note saved")
-
-            return redirect("records:note_print", pk=note.pk)
-
-    else:
-        initial = {}
-        patient_id = request.GET.get("patient")
-        if patient_id:
-            initial["patient"] = patient_id
-        form = DoctorNoteForm(clinic=clinic, initial=initial)
-
-    context = {"form": form}
-    return render(request, "records/note_add.html", context)
-
-
-@login_required
 def note_print(request, pk):
     clinic = _require_clinic(request)
 
@@ -192,48 +97,6 @@ def note_print(request, pk):
 
 
 
-@login_required
-def procedure_report_list(request):
-    clinic = _require_clinic(request)
-    reports = ProcedureReportService.get_for_clinic(clinic)
-    return render(request, "records/procedure_report_list.html", {"reports": reports})
-
-@login_required
-def add_procedure_report(request):
-    clinic = _require_clinic(request)
-
-    if request.method == "POST":
-        form = ProcedureReportForm(request.POST, clinic=clinic)
-        formset = ProcedureItemFormSet(request.POST)
-
-        if form.is_valid() and formset.is_valid():
-            items = [
-                {"procedure_name": f.cleaned_data["procedure_name"], "findings": f.cleaned_data.get("findings", "")}
-                for f in formset
-                if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("procedure_name")
-            ]
-
-            report = ProcedureReportService.create_report(
-                clinic=clinic,
-                patient=form.cleaned_data["patient"],
-                doctor=form.cleaned_data["doctor"],
-                notes=form.cleaned_data["notes"],
-                items=items,
-            )
-
-            messages.success(request, "Procedure report created")
-            return redirect("records:procedure_report_print", pk=report.pk)
-
-    else:
-        initial = {}
-        patient_id = request.GET.get("patient")
-        if patient_id:
-            initial["patient"] = patient_id
-        form = ProcedureReportForm(clinic=clinic, initial=initial)
-        formset = ProcedureItemFormSet()
-
-    return render(request, "records/procedure_report_add.html", {"form": form, "formset": formset})
-
 
 @login_required
 def procedure_report_print(request, pk):
@@ -256,48 +119,6 @@ def procedure_report_print(request, pk):
     return response
 
 
-
-@login_required
-def labwork_demand_list(request):
-    clinic = _require_clinic(request)
-    demands = LabworkDemandService.get_for_clinic(clinic)
-    return render(request, "records/labwork_demand_list.html", {"demands": demands})
-
-
-@login_required
-def add_labwork_demand(request):
-    clinic = _require_clinic(request)
-
-    if request.method == "POST":
-        form = LabworkDemandForm(request.POST, clinic=clinic)
-        formset = LabworkItemFormSet(request.POST)
-
-        if form.is_valid() and formset.is_valid():
-            items = [
-                {
-                    "test_name": f.cleaned_data["test_name"],
-                    "urgency": f.cleaned_data["urgency"],
-                    "clinical_indication": f.cleaned_data.get("clinical_indication", ""),
-                }
-                for f in formset
-                if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("test_name")
-            ]
-
-            demand = LabworkDemandService.create_demand(
-                clinic=clinic,
-                patient=form.cleaned_data["patient"],
-                doctor=form.cleaned_data["doctor"],
-                items=items,
-            )
-
-            messages.success(request, "Labwork demand created")
-            return redirect("records:labwork_demand_print", pk=demand.pk)
-
-    else:
-        form = LabworkDemandForm(clinic=clinic)
-        formset = LabworkItemFormSet()
-
-    return render(request, "records/labwork_demand_add.html", {"form": form, "formset": formset})
 
 
 @login_required
