@@ -5,6 +5,10 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from datetime import datetime
+from unittest.mock import patch
+
+
 from accounts.models import User
 from clinics.models import Clinic, Specialty
 from clinics.profiles import DoctorProfile
@@ -119,20 +123,22 @@ class AppointmentServiceTests(TestCase):
         self.assertEqual(today_a.count(), 1)
         self.assertEqual(today_a.first().clinic, self.clinic_a)
 
-    def test_get_for_day_includes_both_scheduled_and_walk_in(self):
-        today_noon = timezone.now().replace(hour=12, minute=0, second=0, microsecond=0)
+    @patch("django.utils.timezone.now")
+    def test_get_for_day_includes_both_scheduled_and_walk_in(self, mock_now):
+        fixed_now = timezone.make_aware(datetime(2025, 6, 15, 12, 0, 0))
+        mock_now.return_value = fixed_now
 
         AppointmentService.create_appointment(
             clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a,
             appointment_type=self.appt_type,
-            scheduled_at=today_noon + timedelta(hours=1), created_by=self.doctor_user_a,
+            scheduled_at=fixed_now + timedelta(hours=1), created_by=self.doctor_user_a,
         )
         AppointmentService.create_walk_in(
             clinic=self.clinic_a, patient=self.patient_a,
             doctor=self.doctor_a, appointment_type=self.appt_type, created_by=self.doctor_user_a,
         )
 
-        today_a = AppointmentService.get_for_day(self.clinic_a, timezone.localdate())
+        today_a = AppointmentService.get_for_day(self.clinic_a, fixed_now.date())
 
         self.assertEqual(today_a.count(), 2)
 
