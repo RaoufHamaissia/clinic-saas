@@ -34,14 +34,6 @@ class MedicationService:
 class PrescriptionService:
 
     @staticmethod
-    def get_for_clinic(clinic):
-        return Prescription.objects.for_clinic(clinic) #type:ignore
-
-    @staticmethod
-    def get_prescription(clinic, prescription_id):
-        return Prescription.objects.for_clinic(clinic).get(pk=prescription_id) #type:ignore
-
-    @staticmethod
     def create_prescription(*, clinic, patient, doctor, notes="", items):
         if patient.clinic_id != clinic.id:
             raise ValueError("Patient does not belong to this clinic.")
@@ -81,15 +73,6 @@ class PrescriptionService:
 
 class DoctorNoteService:
 
-
-    @staticmethod
-    def get_for_clinic(clinic):
-        return DoctorNote.objects.for_clinic(clinic) #type:ignore
-
-    @staticmethod
-    def get_note(clinic, note_id):
-        return DoctorNote.objects.for_clinic(clinic).get(pk=note_id) #type:ignore
-
     @staticmethod
     def create_note(*, clinic, patient, doctor, content):
         if patient.clinic_id != clinic.id:
@@ -118,14 +101,6 @@ class DoctorNoteService:
 
 
 class ProcedureReportService:
-
-    @staticmethod
-    def get_for_clinic(clinic):
-        return ProcedureReport.objects.for_clinic(clinic) #type:ignore
-
-    @staticmethod
-    def get_report(clinic, report_id):
-        return ProcedureReport.objects.for_clinic(clinic).get(pk=report_id) #type:ignore
 
     @staticmethod
     def create_report(*, clinic, patient, doctor, notes="", items):
@@ -165,14 +140,6 @@ class ProcedureReportService:
 
 
 class LabworkDemandService:
-
-    @staticmethod
-    def get_for_clinic(clinic): 
-        return LabworkDemand.objects.for_clinic(clinic) #type:ignore
-
-    @staticmethod
-    def get_demand(clinic, demand_id):
-        return LabworkDemand.objects.for_clinic(clinic).get(pk=demand_id) #type:ignore
 
     @staticmethod
     def create_demand(*, clinic, patient, doctor, items):
