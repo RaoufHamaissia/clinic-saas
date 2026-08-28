@@ -13,14 +13,6 @@
                 {% csrf_token %}
                 {{ formset.management_form }}
 
-                <div class="mb-3">
-                    {{ form.patient.label_tag }}
-                    {{ form.patient }}
-                    {% for error in form.patient.errors %}
-                        <div class="text-danger small mt-1">{{ error }}</div>
-                    {% endfor %}
-                </div>
-
                 <div class="mb-4">
                     {{ form.doctor.label_tag }}
                     {{ form.doctor }}
@@ -49,7 +41,7 @@
                 <button type="submit" class="btn btn-primary">
                     Create & print
                 </button>
-                <a href="{% url 'records:prescription_list' %}" class="btn btn-outline-secondary">
+                <a href="{% url 'patients:detail' patient.pk  %}" class="btn btn-outline-secondary">
                     Cancel
                 </a>
             </form>

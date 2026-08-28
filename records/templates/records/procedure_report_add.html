@@ -12,10 +12,6 @@
                 {% csrf_token %}
                 {{ formset.management_form }}
 
-                <div class="mb-3">
-                    {{ form.patient.label_tag }}
-                    {{ form.patient }}
-                </div>
                 <div class="mb-4">
                     {{ form.doctor.label_tag }}
                     {{ form.doctor }}
@@ -36,7 +32,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">Create & print</button>
-                <a href="{% url 'records:procedure_report_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                <a href="{% url 'patients:detail' patient.pk  %}" class="btn btn-outline-secondary">Cancel</a>
             </form>
         </div>
     </div>
