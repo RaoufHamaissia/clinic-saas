@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Appointment
+from .models import Appointment, AppointmentType
 
 # Register your models here.
 
@@ -9,6 +9,7 @@ class AppointmentAdmin(admin.ModelAdmin):
     list_display = (
         "patient",
         "doctor",
+        "type",
         "clinic",
         "scheduled_at",
         "status",
@@ -20,6 +21,7 @@ class AppointmentAdmin(admin.ModelAdmin):
         "status",
         "is_walk_in",
         "doctor",
+        "type",
     )
 
     search_fields = (
@@ -27,3 +29,8 @@ class AppointmentAdmin(admin.ModelAdmin):
         "patient__last_name",
         "doctor__user__email"
     )
+
+@admin.register(AppointmentType)
+class AppointmentTypeAdmin(admin.ModelAdmin):
+    list_display = ("name", "created_at")
+    search_fields = ("name",)
