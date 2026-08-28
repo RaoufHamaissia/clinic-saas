@@ -7,11 +7,6 @@ from patients.models import Patient
 from .models import LabworkDemand, DoctorDocumentProfile
 
 class PrescriptionForm(forms.Form):
-    patient = forms.ModelChoiceField(
-        queryset=Patient.objects.none(),
-        label="Patient",
-        widget=forms.Select(attrs={"class": "form-select"})
-    )
 
     doctor = forms.ModelChoiceField(
         queryset=DoctorProfile.objects.none(),
@@ -29,7 +24,6 @@ class PrescriptionForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if clinic is not None:
-            self.fields["patient"].queryset = Patient.objects.for_clinic(clinic) #type:ignore
             self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic)  #type:ignore
 
 
@@ -65,11 +59,6 @@ PrescriptionItemFormSet = formset_factory(PrescriptionItemForm, extra=3, can_del
 
 
 class DoctorNoteForm(forms.Form):
-    patient = forms.ModelChoiceField(
-        queryset=Patient.objects.none(),
-        label="Patient",
-        widget=forms.Select(attrs={"class": "form-select"})
-    )
 
     doctor = forms.ModelChoiceField(
         queryset=DoctorProfile.objects.none(),
@@ -92,7 +81,7 @@ class DoctorNoteForm(forms.Form):
 
 
 class ProcedureReportForm(forms.Form):
-    patient = forms.ModelChoiceField(queryset=Patient.objects.none(), label="Patient", widget=forms.Select(attrs={"class": "form-select"}))
+   
     doctor = forms.ModelChoiceField(queryset=DoctorProfile.objects.none(), label="Doctor", widget=forms.Select(attrs={"class": "form-select"}))
     notes = forms.CharField(required=False, label="General notes", widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}))
 
@@ -118,7 +107,7 @@ ProcedureItemFormSet = formset_factory(ProcedureItemForm, extra=2, can_delete=Tr
 
 
 class LabworkDemandForm(forms.Form):
-    patient = forms.ModelChoiceField(queryset=Patient.objects.none(), label="Patient", widget=forms.Select(attrs={"class": "form-select"}))
+ 
     doctor = forms.ModelChoiceField(queryset=DoctorProfile.objects.none(), label="Doctor", widget=forms.Select(attrs={"class": "form-select"}))
 
     def __init__(self, *args, clinic=None, **kwargs):
