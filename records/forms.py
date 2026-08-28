@@ -75,7 +75,6 @@ class DoctorNoteForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if clinic is not None:
-            self.fields["patient"].queryset = Patient.objects.for_clinic(clinic) #type:ignore
             self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
 
 
@@ -88,7 +87,6 @@ class ProcedureReportForm(forms.Form):
     def __init__(self, *args, clinic=None, **kwargs):
         super().__init__(*args, **kwargs)
         if clinic is not None:
-            self.fields["patient"].queryset = Patient.objects.for_clinic(clinic) #type:ignore
             self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
 
 
@@ -113,7 +111,6 @@ class LabworkDemandForm(forms.Form):
     def __init__(self, *args, clinic=None, **kwargs):
         super().__init__(*args, **kwargs)
         if clinic is not None:
-            self.fields["patient"].queryset = Patient.objects.for_clinic(clinic) #type:ignore
             self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
 
 
