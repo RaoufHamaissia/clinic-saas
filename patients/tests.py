@@ -128,8 +128,12 @@ class PatientDetailViewTests(TestCase):
     def test_detail_shows_aggregated_records(self):
         self.client.login(email="staff-a@example.com", password="StrongPassword123!")
 
+        from appointments.models import AppointmentType
+        appt_type = AppointmentType.objects.create(name="Consultation")
+
         AppointmentService.create_walk_in(
-            clinic=self.clinic_a, patient=self.patient, doctor=self.doctor, created_by=self.user
+            clinic=self.clinic_a, patient=self.patient, doctor=self.doctor,
+            appointment_type=appt_type, created_by=self.user
         )
         PrescriptionService.create_prescription(
             clinic=self.clinic_a, patient=self.patient, doctor=self.doctor, items=[]
