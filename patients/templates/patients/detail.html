@@ -165,9 +165,10 @@
 
         <div class="tab-pane fade" id="labwork-tab">
             <div class="d-flex justify-content-end mb-3">
-                <a href="{% url 'records:labwork_demand_add' %}?patient={{ patient.pk }}" class="btn btn-sm btn-primary">
-                    New demand
-                </a>
+                <a href="{% url 'patients:add_prescription' patient.pk %}" class="btn btn-sm btn-primary">New prescription</a>
+                <a href="{% url 'patients:add_note' patient.pk %}" class="btn btn-sm btn-primary">New note</a>
+                <a href="{% url 'patients:add_procedure_report' patient.pk %}" class="btn btn-sm btn-primary">New report</a>
+                <a href="{% url 'patients:add_labwork_demand' patient.pk %}" class="btn btn-sm btn-primary">New Labwork demand</a>
             </div>
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
