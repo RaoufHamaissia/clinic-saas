@@ -5,12 +5,20 @@ from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 
-from .forms import AppointmentForm, WalkInForm
+from .forms import AppointmentForm, WalkInForm, AppointmentTypeService
 from .services import AppointmentService
 from .models import Appointment
 
 # Create your views here.
+
+@login_required
+def appointment_type_suggest(request):
+    query = request.GET.get("q", "")
+    types = AppointmentTypeService.suggest(query)
+
+    return JsonResponse({"results": [t.name for t in types]})
 
 def _require_clinic(request):
     clinic = request.user.clinic
@@ -51,6 +59,7 @@ def add_appointment(request):
                 clinic=clinic,
                 patient=form.cleaned_data['patient'],
                 doctor=form.cleaned_data['doctor'],
+                appointment_type=form.cleaned_data["type"],
                 scheduled_at=form.cleaned_data['scheduled_at'],
                 created_by=request.user,
             )
@@ -84,6 +93,7 @@ def add_walk_in(request):
                 clinic=clinic,
                 patient=form.cleaned_data['patient'],
                 doctor=form.cleaned_data['doctor'],
+                appointment_type=form.cleaned_data["type"],
                 created_by=request.user,
             )
 
