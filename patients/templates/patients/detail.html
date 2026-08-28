@@ -20,52 +20,49 @@
 
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#appointments-tab" type="button">
-                Appointments
-            </button>
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#appointments-tab" type="button">Appointments</button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prescriptions-tab" type="button">
-                Prescriptions
-            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#prescriptions-tab" type="button">Prescriptions</button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#notes-tab" type="button">
-                Doctor Notes
-            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#notes-tab" type="button">Doctor Notes</button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#procedures-tab" type="button">
-                Procedure Reports
-            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#procedures-tab" type="button">Procedure Reports</button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#labwork-tab" type="button">
-                Labwork Demands
-            </button>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#labwork-tab" type="button">Labwork Demands</button>
         </li>
     </ul>
 
     <div class="tab-content">
 
         <div class="tab-pane fade show active" id="appointments-tab">
+            <form method="get" action="{% url 'patients:detail' patient.pk %}#appointments-tab" class="row g-2 mb-3">
+                <div class="col-md-5">
+                    <input type="text" name="appt_search" value="{{ filters.appt.search }}" class="form-control form-control-sm" placeholder="Search appointment type">
+                </div>
+                <div class="col-md-3"><input type="date" name="appt_start" value="{{ filters.appt.start }}" class="form-control form-control-sm"></div>
+                <div class="col-md-3"><input type="date" name="appt_end" value="{{ filters.appt.end }}" class="form-control form-control-sm"></div>
+                <div class="col-md-1"><button type="submit" class="btn btn-sm btn-outline-secondary w-100">Go</button></div>
+            </form>
+
             <div class="d-flex justify-content-end gap-2 mb-3">
-                <a href="{% url 'appointments:walk_in' %}?patient={{ patient.pk }}&next={% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-outline-primary">
-                    Add walk-in
-                </a>
-                <a href="{% url 'appointments:add' %}?patient={{ patient.pk }}&next={% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-primary">
-                    Book appointment
-                </a>
+                <a href="{% url 'appointments:walk_in' %}?patient={{ patient.pk }}&next={% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-outline-primary">Add walk-in</a>
+                <a href="{% url 'appointments:add' %}?patient={{ patient.pk }}&next={% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-primary">Book appointment</a>
             </div>
+
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     {% if appointments %}
                         <table class="table align-middle mb-0">
-                            <thead><tr><th>Date</th><th>Doctor</th><th>Status</th></tr></thead>
+                            <thead><tr><th>Date</th><th>Type</th><th>Doctor</th><th>Status</th></tr></thead>
                             <tbody>
                                 {% for appt in appointments %}
                                     <tr>
                                         <td>{{ appt.scheduled_at|date:"Y-m-d H:i" }}</td>
+                                        <td>{{ appt.type }}</td>
                                         <td>{{ appt.doctor }}</td>
                                         <td><span class="badge bg-info text-dark">{{ appt.get_status_display }}</span></td>
                                     </tr>
@@ -73,18 +70,26 @@
                             </tbody>
                         </table>
                     {% else %}
-                        <p class="text-muted mb-0">No appointments yet.</p>
+                        <p class="text-muted mb-0">No appointments match.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="tab-pane fade" id="prescriptions-tab">
+            <form method="get" action="{% url 'patients:detail' patient.pk %}#prescriptions-tab" class="row g-2 mb-3">
+                <div class="col-md-5">
+                    <input type="text" name="rx_search" value="{{ filters.rx.search }}" class="form-control form-control-sm" placeholder="Search medication or notes">
+                </div>
+                <div class="col-md-3"><input type="date" name="rx_start" value="{{ filters.rx.start }}" class="form-control form-control-sm"></div>
+                <div class="col-md-3"><input type="date" name="rx_end" value="{{ filters.rx.end }}" class="form-control form-control-sm"></div>
+                <div class="col-md-1"><button type="submit" class="btn btn-sm btn-outline-secondary w-100">Go</button></div>
+            </form>
+
             <div class="d-flex justify-content-end mb-3">
-                <a href="{% url 'records:prescription_add' %}?patient={{ patient.pk }}" class="btn btn-sm btn-primary">
-                    New prescription
-                </a>
+                <a href="{% url 'patients:add_prescription' patient.pk %}" class="btn btn-sm btn-primary">New prescription</a>
             </div>
+
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     {% if prescriptions %}
@@ -101,18 +106,26 @@
                             </tbody>
                         </table>
                     {% else %}
-                        <p class="text-muted mb-0">No prescriptions yet.</p>
+                        <p class="text-muted mb-0">No prescriptions match.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="tab-pane fade" id="notes-tab">
+            <form method="get" action="{% url 'patients:detail' patient.pk %}#notes-tab" class="row g-2 mb-3">
+                <div class="col-md-5">
+                    <input type="text" name="note_search" value="{{ filters.note.search }}" class="form-control form-control-sm" placeholder="Search note content">
+                </div>
+                <div class="col-md-3"><input type="date" name="note_start" value="{{ filters.note.start }}" class="form-control form-control-sm"></div>
+                <div class="col-md-3"><input type="date" name="note_end" value="{{ filters.note.end }}" class="form-control form-control-sm"></div>
+                <div class="col-md-1"><button type="submit" class="btn btn-sm btn-outline-secondary w-100">Go</button></div>
+            </form>
+
             <div class="d-flex justify-content-end mb-3">
-                <a href="{% url 'records:note_add' %}?patient={{ patient.pk }}" class="btn btn-sm btn-primary">
-                    New note
-                </a>
+                <a href="{% url 'patients:add_note' patient.pk %}" class="btn btn-sm btn-primary">New note</a>
             </div>
+
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     {% if notes %}
@@ -129,18 +142,26 @@
                             </tbody>
                         </table>
                     {% else %}
-                        <p class="text-muted mb-0">No notes yet.</p>
+                        <p class="text-muted mb-0">No notes match.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="tab-pane fade" id="procedures-tab">
+            <form method="get" action="{% url 'patients:detail' patient.pk %}#procedures-tab" class="row g-2 mb-3">
+                <div class="col-md-5">
+                    <input type="text" name="proc_search" value="{{ filters.proc.search }}" class="form-control form-control-sm" placeholder="Search procedure or findings">
+                </div>
+                <div class="col-md-3"><input type="date" name="proc_start" value="{{ filters.proc.start }}" class="form-control form-control-sm"></div>
+                <div class="col-md-3"><input type="date" name="proc_end" value="{{ filters.proc.end }}" class="form-control form-control-sm"></div>
+                <div class="col-md-1"><button type="submit" class="btn btn-sm btn-outline-secondary w-100">Go</button></div>
+            </form>
+
             <div class="d-flex justify-content-end mb-3">
-                <a href="{% url 'records:procedure_report_add' %}?patient={{ patient.pk }}" class="btn btn-sm btn-primary">
-                    New report
-                </a>
+                <a href="{% url 'patients:add_procedure_report' patient.pk %}" class="btn btn-sm btn-primary">New report</a>
             </div>
+
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     {% if procedure_reports %}
@@ -157,19 +178,26 @@
                             </tbody>
                         </table>
                     {% else %}
-                        <p class="text-muted mb-0">No procedure reports yet.</p>
+                        <p class="text-muted mb-0">No procedure reports match.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="tab-pane fade" id="labwork-tab">
+            <form method="get" action="{% url 'patients:detail' patient.pk %}#labwork-tab" class="row g-2 mb-3">
+                <div class="col-md-5">
+                    <input type="text" name="lab_search" value="{{ filters.lab.search }}" class="form-control form-control-sm" placeholder="Search test or indication">
+                </div>
+                <div class="col-md-3"><input type="date" name="lab_start" value="{{ filters.lab.start }}" class="form-control form-control-sm"></div>
+                <div class="col-md-3"><input type="date" name="lab_end" value="{{ filters.lab.end }}" class="form-control form-control-sm"></div>
+                <div class="col-md-1"><button type="submit" class="btn btn-sm btn-outline-secondary w-100">Go</button></div>
+            </form>
+
             <div class="d-flex justify-content-end mb-3">
-                <a href="{% url 'patients:add_prescription' patient.pk %}" class="btn btn-sm btn-primary">New prescription</a>
-                <a href="{% url 'patients:add_note' patient.pk %}" class="btn btn-sm btn-primary">New note</a>
-                <a href="{% url 'patients:add_procedure_report' patient.pk %}" class="btn btn-sm btn-primary">New report</a>
-                <a href="{% url 'patients:add_labwork_demand' patient.pk %}" class="btn btn-sm btn-primary">New Labwork demand</a>
+                <a href="{% url 'patients:add_labwork_demand' patient.pk %}" class="btn btn-sm btn-primary">New demand</a>
             </div>
+
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     {% if labwork_demands %}
@@ -186,11 +214,22 @@
                             </tbody>
                         </table>
                     {% else %}
-                        <p class="text-muted mb-0">No labwork demands yet.</p>
+                        <p class="text-muted mb-0">No labwork demands match.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.location.hash) {
+                const trigger = document.querySelector('button[data-bs-target="' + window.location.hash + '"]');
+                if (trigger) {
+                    new bootstrap.Tab(trigger).show();
+                }
+            }
+        });
+    </script>
 {% endblock content %}
