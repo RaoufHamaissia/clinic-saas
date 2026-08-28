@@ -1,7 +1,7 @@
 from .models import (Prescription, PrescriptionItem, Medication, DoctorNote, ProcedureItem, ProcedureReport,
                     ProcedureReport, ProcedureItem, LabworkDemand, LabworkItem,
                      )
-
+from django.db.models import Q
 
 class MedicationService:
     @staticmethod
@@ -63,9 +63,19 @@ class PrescriptionService:
         return prescription
 
     @staticmethod
-    def get_for_patient(clinic, patient):
-        return Prescription.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore
+    def get_for_patient(clinic, patient, search=None, start_date=None, end_date=None):
+        qs = Prescription.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore
 
+        if start_date:
+            qs = qs.filter(created_at__date__gte=start_date)
+        if end_date:
+            qs = qs.filter(created_at__date__lte=end_date)
+        if search:
+            qs = qs.filter(
+                Q(notes__icontains=search) | Q(items__medication_name__icontains=search)
+            ).distinct()
+
+        return qs
 
     
 
@@ -93,9 +103,17 @@ class DoctorNoteService:
         )
 
     @staticmethod
-    def get_for_patient(clinic, patient):
-        return DoctorNote.objects.for_clinic(clinic).filter(patient=patient) #type:ignore
+    def get_for_patient(clinic, patient, search=None, start_date=None, end_date=None):
+        qs = DoctorNote.objects.for_clinic(clinic).filter(patient=patient) #type:ignore
 
+        if start_date:
+            qs = qs.filter(created_at__date__gte=start_date)
+        if end_date:
+            qs = qs.filter(created_at__date__lte=end_date)
+        if search:
+            qs = qs.filter(content__icontains=search)
+
+        return qs
 
 
 
@@ -128,8 +146,21 @@ class ProcedureReportService:
         return report
 
     @staticmethod
-    def get_for_patient(clinic, patient):
-        return ProcedureReport.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore
+    def get_for_patient(clinic, patient, search=None, start_date=None, end_date=None):
+        qs = ProcedureReport.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore
+
+        if start_date:
+            qs = qs.filter(created_at__date__gte=start_date)
+        if end_date:
+            qs = qs.filter(created_at__date__lte=end_date)
+        if search:
+            qs = qs.filter(
+                Q(notes__icontains=search)
+                | Q(items__procedure_name__icontains=search)
+                | Q(items__findings__icontains=search)
+            ).distinct()
+
+        return qs
 
 
 
@@ -160,5 +191,16 @@ class LabworkDemandService:
         return demand
 
     @staticmethod
-    def get_for_patient(clinic, patient):
-        return LabworkDemand.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore
+    def get_for_patient(clinic, patient, search=None, start_date=None, end_date=None):
+        qs = LabworkDemand.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items") #type:ignore
+
+        if start_date:
+            qs = qs.filter(created_at__date__gte=start_date)
+        if end_date:
+            qs = qs.filter(created_at__date__lte=end_date)
+        if search:
+            qs = qs.filter(
+                Q(items__test_name__icontains=search) | Q(items__clinical_indication__icontains=search)
+            ).distinct()
+
+        return qs
