@@ -6,6 +6,11 @@ from patients.models import Patient
 from appointments.services import AppointmentService
 from django.utils import timezone
 
+from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
+
+from .services import AuditLogService
+
 
 # Create your views here.
 
@@ -34,3 +39,28 @@ def dashboard(request):
     }
 
     return render(request, 'core/dashboard.html', context )
+
+
+@login_required
+def audit_log_view(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied("Only a platform superuser can view the audit log.")
+
+    filters = {
+        "action": request.GET.get("action", ""),
+        "actor_email": request.GET.get("actor_email", ""),
+        "start_date": request.GET.get("start_date", ""),
+        "end_date": request.GET.get("end_date", ""),
+    }
+
+    logs = AuditLogService.get_all(filters)
+
+    paginator = Paginator(logs, 50)
+    page_obj = paginator.get_page(request.GET.get("page", 1))
+
+    context = {
+        "page_obj": page_obj,
+        "filters": filters,
+        "action_choices": AuditLogService.Action.choices,
+    }
+    return render(request, "core/audit_log.html", context)
