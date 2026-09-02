@@ -1,6 +1,8 @@
 from django.db import models
 from core.models import ClinicOwnedModel
 
+from django_cryptography.fields import encrypt
+
 
 # Create your models here.
 
@@ -28,7 +30,7 @@ class Prescription(ClinicOwnedModel):
     patient = models.ForeignKey("patients.Patient", on_delete=models.PROTECT,related_name="prescriptions")
     doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="prescriptions")
 
-    notes = models.TextField(blank=True)
+    notes = encrypt(models.TextField(blank=True))
 
     class Meta:
         ordering = ["-created_at"]
@@ -40,11 +42,11 @@ class Prescription(ClinicOwnedModel):
 class PrescriptionItem(models.Model):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name="items")
 
-    medication_name = models.CharField(max_length=200)
-    dosage = models.CharField(max_length=100, blank=True)
-    frequency = models.CharField(max_length=100, blank=True)
-    duration = models.CharField(max_length=100, blank=True)
-    instructions = models.CharField(max_length=255, blank=True)
+    medication_name = encrypt(models.CharField(max_length=200))
+    dosage = encrypt(models.CharField(max_length=100, blank=True))
+    frequency = encrypt(models.CharField(max_length=100, blank=True))
+    duration = encrypt(models.CharField(max_length=100, blank=True))
+    instructions = encrypt(models.CharField(max_length=255, blank=True))
 
     def __str__(self):
         return self.medication_name
@@ -72,7 +74,7 @@ class DoctorNote(ClinicOwnedModel):
     patient = models.ForeignKey("patients.Patient", on_delete=models.PROTECT, related_name="doctor_notes")
     doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="doctor_notes")
 
-    content = models.TextField()
+    content = encrypt(models.TextField())
 
     class Meta:
         ordering = ["-created_at"]
@@ -86,7 +88,7 @@ class ProcedureReport(ClinicOwnedModel):
     patient = models.ForeignKey("patients.Patient", on_delete=models.PROTECT, related_name="procedure_reports")
     doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="procedure_reports")
 
-    notes = models.TextField(blank=True)
+    notes = encrypt(models.TextField(blank=True))
 
     class Meta:
         ordering = ["-created_at"]
@@ -98,8 +100,8 @@ class ProcedureReport(ClinicOwnedModel):
 class ProcedureItem(models.Model):
     report = models.ForeignKey(ProcedureReport, on_delete=models.CASCADE, related_name="items")
 
-    procedure_name = models.CharField(max_length=200)
-    findings = models.TextField(blank=True)
+    procedure_name = encrypt(models.CharField(max_length=200))
+    findings = encrypt(models.TextField(blank=True))
 
     def __str__(self):
         return self.procedure_name
@@ -123,9 +125,9 @@ class LabworkDemand(ClinicOwnedModel):
 class LabworkItem(models.Model):
     demand = models.ForeignKey(LabworkDemand, on_delete=models.CASCADE, related_name="items")
 
-    test_name = models.CharField(max_length=200)
+    test_name = encrypt(models.CharField(max_length=200))
     urgency = models.CharField(max_length=20, choices=LabworkDemand.Urgency.choices, default=LabworkDemand.Urgency.ROUTINE)
-    clinical_indication = models.CharField(max_length=255, blank=True)
+    clinical_indication = encrypt(models.CharField(max_length=255, blank=True))
 
     def __str__(self):
         return self.test_name
