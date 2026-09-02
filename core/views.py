@@ -19,7 +19,8 @@ def dashboard(request):
     patients_count = Patient.objects.filter(clinic=clinic).count() if clinic else 0
 
     todays_appointments = (
-        AppointmentService.get_for_day(clinic, timezone.localdate() if clinic else [])
+        AppointmentService.get_for_day(clinic, timezone.localdate())
+        if clinic else []
     )
 
     context = {

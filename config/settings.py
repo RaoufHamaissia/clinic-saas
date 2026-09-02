@@ -167,3 +167,11 @@ LOGOUT_REDIRECT_URL = "accounts:login"
 
 PHONENUMBER_DEFAULT_REGION = "DZ"
 PHONENUMBER_DB_FORMAT = "E164"  # normalized storage, e.g. +213555123456
+
+
+
+"""
+Generate a new secret key using the following command in your terminal before production:
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+
+"""
