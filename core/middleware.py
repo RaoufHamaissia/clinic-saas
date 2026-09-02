@@ -1,5 +1,6 @@
-from .context import set_current_clinic, clear_current_clinic
-
+from .context import (set_current_clinic, clear_current_clinic,
+                      set_current_user, clear_current_user)
+from .services import AuditLogService
 from django.conf import settings
 
 class CurrentClinicMiddleware:
@@ -27,5 +28,42 @@ class CurrentClinicMiddleware:
             response = self.get_response(request)
         finally:
             clear_current_clinic()
+
+        return response
+
+EXCLUDED_AUDIT_PREFIXES = ("/static/", "/media/", "/admin/jsi18n/")
+
+class AuditTrailMiddleware:
+    """
+    Logs every authenticated request as a generic access-trail entry
+    (path, method, status, actor, clinic, IP) — the "full trail" layer
+    on top of the structured CREATE/UPDATE/PRINT/LOGIN events logged
+    elsewhere via signals and explicit calls.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, "user", None)
+        is_authenticated = bool(user and user.is_authenticated)
+
+        if is_authenticated:
+            set_current_user(user)
+
+        response = self.get_response(request)
+
+        if is_authenticated and not request.path.startswith(EXCLUDED_AUDIT_PREFIXES):
+            AuditLogService.log(
+                actor=user,
+                clinic=getattr(user, "clinic", None),
+                action=AuditLogService.Action.VIEW,
+                path=request.path,
+                method=request.method,
+                status_code=response.status_code,
+                ip_address=AuditLogService._get_ip(request),
+            )
+
+        clear_current_user()
 
         return response
