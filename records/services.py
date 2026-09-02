@@ -62,10 +62,15 @@ class PrescriptionService:
             qs = qs.filter(created_at__date__gte=start_date)
         if end_date:
             qs = qs.filter(created_at__date__lte=end_date)
+
         if search:
-            qs = qs.filter(
-                Q(notes__icontains=search) | Q(items__medication_name__icontains=search)
-            ).distinct()
+            search_lower = search.lower()
+            matching_ids = [
+                p.pk for p in qs
+                if search_lower in (p.notes or "").lower()
+                or any(search_lower in (item.medication_name or "").lower() for item in p.items.all())
+            ]
+            qs = qs.filter(pk__in=matching_ids)
 
         return qs
 
@@ -93,8 +98,11 @@ class DoctorNoteService:
             qs = qs.filter(created_at__date__gte=start_date)
         if end_date:
             qs = qs.filter(created_at__date__lte=end_date)
+
         if search:
-            qs = qs.filter(content__icontains=search)
+            search_lower = search.lower()
+            matching_ids = [n.pk for n in qs if search_lower in (n.content or "").lower()]
+            qs = qs.filter(pk__in=matching_ids)
 
         return qs
 
@@ -128,12 +136,19 @@ class ProcedureReportService:
             qs = qs.filter(created_at__date__gte=start_date)
         if end_date:
             qs = qs.filter(created_at__date__lte=end_date)
+
         if search:
-            qs = qs.filter(
-                Q(notes__icontains=search)
-                | Q(items__procedure_name__icontains=search)
-                | Q(items__findings__icontains=search)
-            ).distinct()
+            search_lower = search.lower()
+            matching_ids = [
+                r.pk for r in qs
+                if search_lower in (r.notes or "").lower()
+                or any(
+                    search_lower in (item.procedure_name or "").lower()
+                    or search_lower in (item.findings or "").lower()
+                    for item in r.items.all()
+                )
+            ]
+            qs = qs.filter(pk__in=matching_ids)
 
         return qs
 
@@ -165,9 +180,17 @@ class LabworkDemandService:
             qs = qs.filter(created_at__date__gte=start_date)
         if end_date:
             qs = qs.filter(created_at__date__lte=end_date)
+
         if search:
-            qs = qs.filter(
-                Q(items__test_name__icontains=search) | Q(items__clinical_indication__icontains=search)
-            ).distinct()
+            search_lower = search.lower()
+            matching_ids = [
+                d.pk for d in qs
+                if any(
+                    search_lower in (item.test_name or "").lower()
+                    or search_lower in (item.clinical_indication or "").lower()
+                    for item in d.items.all()
+                )
+            ]
+            qs = qs.filter(pk__in=matching_ids)
 
         return qs
