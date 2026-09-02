@@ -54,6 +54,13 @@
 
             <nav>
                 <ul class="nav flex-column">
+                    {% if request.user.is_superuser %}
+                        <li class="nav-item">
+                            <a href="{% url "core:audit_log" %}" class="nav-link {% if request.resolver_match.view_name == 'core:audit_log' %}active{% endif %}">
+                                Audit Log
+                            </a>
+                        </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a href="{% url "core:dashboard" %}" class="nav-link {% if request.resolver_match.view_name == 'core:dashboard' %}active{% endif %}">
                             Dashboard
