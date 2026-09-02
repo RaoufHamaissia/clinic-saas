@@ -2,7 +2,8 @@ from django.db import models
 from core.models import ClinicOwnedModel
 from phonenumber_field.modelfields import PhoneNumberField
 
-from datetime import date
+from django_cryptography.fields import encrypt
+
 from django.utils import timezone
 
 # Create your models here.
@@ -18,7 +19,7 @@ class Patient(ClinicOwnedModel):
     )
 
     phone = PhoneNumberField(unique=False, blank=True)
-    address = models.TextField(blank=True)
+    address = encrypt(models.TextField(blank=True))
 
     reason_for_visit = models.CharField(max_length=255, blank=True)
 
