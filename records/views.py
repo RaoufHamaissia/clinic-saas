@@ -22,6 +22,8 @@ from django.http import JsonResponse
 
 from accounts.models import User
 
+from core.services import AuditLogService
+
 
 # Create your views here.
 
@@ -48,6 +50,11 @@ def prescription_print(request, pk):
     prescription = get_object_or_404(
         Prescription.objects.for_clinic(clinic).select_related("patient", "doctor__user", "clinic"), #type:ignore
         pk=pk,
+    )
+
+    AuditLogService.log(
+        actor=request.user, clinic=clinic, action=AuditLogService.Action.PRINT,
+        target=prescription, path=request.path, method=request.method,
     )
 
     html_string = render_to_string("records/prescription_pdf.html", {
@@ -79,6 +86,11 @@ def note_print(request, pk):
         pk=pk,
     )
 
+    AuditLogService.log(
+        actor=request.user, clinic=clinic, action=AuditLogService.Action.PRINT,
+        target=note, path=request.path, method=request.method,
+    )
+
     html_string = render_to_string("records/note_pdf.html", {
         "note": note,
         "clinic": clinic,
@@ -107,6 +119,11 @@ def procedure_report_print(request, pk):
         pk=pk,
     ) 
 
+    AuditLogService.log(
+        actor=request.user, clinic=clinic, action=AuditLogService.Action.PRINT,
+        target=report, path=request.path, method=request.method,
+    )
+
     html_string = render_to_string("records/procedure_report_pdf.html", {
         "report": report, "clinic": clinic, "doctor": report.doctor, "items": report.items.all(),
     })
@@ -128,6 +145,11 @@ def labwork_demand_print(request, pk):
     demand = get_object_or_404(
         LabworkDemand.objects.for_clinic(clinic).select_related("patient", "doctor__user", "clinic"), #type:ignore
         pk=pk,
+    )
+
+    AuditLogService.log(
+        actor=request.user, clinic=clinic, action=AuditLogService.Action.PRINT,
+        target=demand, path=request.path, method=request.method,
     )
 
     html_string = render_to_string("records/labwork_demand_pdf.html", {
