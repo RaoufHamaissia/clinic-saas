@@ -18,7 +18,7 @@ from .services import (
     PrescriptionService, MedicationService, DoctorNoteService,
     ProcedureReportService, LabworkDemandService,
 )
-
+from django.db import connection
 
 class PrescriptionServiceTests(TestCase):
 
@@ -626,3 +626,76 @@ class DocumentProfileViewTests(TestCase):
         profile = DoctorDocumentProfile.objects.get(doctor=self.doctor)
         self.assertTrue(profile.signature)
         self.assertIn("signature", profile.signature.name) #type:ignore
+
+
+
+class EncryptionAtRestTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.doctor_user = User.objects.create_user(email="doc@example.com", password="pw", clinic=self.clinic) #type:ignore
+        self.doctor = DoctorProfile.objects.create(user=self.doctor_user, clinic=self.clinic, specialty=self.specialty)
+        self.patient = Patient.objects.create(clinic=self.clinic, first_name="John", last_name="A")
+
+    def test_doctor_note_content_is_encrypted_at_rest(self):
+        secret_content = "Patient has a rare condition XYZ123"
+
+        note = DoctorNoteService.create_note(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor, content=secret_content
+        )
+
+        # Bypass the ORM entirely — read the raw column value straight from Postgres
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT content FROM records_doctornote WHERE id = %s", [note.pk])
+            raw_value = cursor.fetchone()[0]
+
+        self.assertNotIn(secret_content, raw_value)
+        self.assertNotEqual(raw_value, secret_content)
+
+        # But the ORM should still transparently decrypt it back correctly
+        note.refresh_from_db()
+        self.assertEqual(note.content, secret_content)
+
+    def test_prescription_item_medication_name_is_encrypted_at_rest(self):
+        prescription = PrescriptionService.create_prescription(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor,
+            items=[{"medication_name": "SecretDrugName", "dosage": "", "frequency": "", "duration": "", "instructions": ""}],
+        )
+        item = prescription.items.first() #type:ignore
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT medication_name FROM records_prescriptionitem WHERE id = %s", [item.pk])
+            raw_value = cursor.fetchone()[0]
+
+        self.assertNotIn("SecretDrugName", raw_value)
+
+        item.refresh_from_db()
+        self.assertEqual(item.medication_name, "SecretDrugName")
+
+    def test_patient_address_is_encrypted_at_rest(self):
+        patient = Patient.objects.create(
+            clinic=self.clinic, first_name="Jane", last_name="B", address="123 Secret Street, Algiers"
+        )
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT address FROM patients_patient WHERE id = %s", [patient.pk])
+            raw_value = cursor.fetchone()[0]
+
+        self.assertNotIn("Secret Street", raw_value)
+
+        patient.refresh_from_db()
+        self.assertEqual(patient.address, "123 Secret Street, Algiers")
+
+    def test_patient_name_is_not_encrypted(self):
+        """
+        Confirms the scoping decision held: name stays in the clear for
+        list/sort performance, per the recommendation this was built against.
+        """
+        patient = Patient.objects.create(clinic=self.clinic, first_name="Plaintext", last_name="Name")
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT first_name FROM patients_patient WHERE id = %s", [patient.pk])
+            raw_value = cursor.fetchone()[0]
+
+        self.assertEqual(raw_value, "Plaintext")

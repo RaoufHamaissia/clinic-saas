@@ -1,7 +1,7 @@
 from .models import (Prescription, PrescriptionItem, Medication, DoctorNote, ProcedureItem, ProcedureReport,
                     ProcedureReport, ProcedureItem, LabworkDemand, LabworkItem,
                      )
-from django.db.models import Q
+
 
 class MedicationService:
     @staticmethod
