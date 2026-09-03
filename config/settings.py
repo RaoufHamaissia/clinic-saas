@@ -35,6 +35,13 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1']) #type:ignore
 
+CHARGILY_KEY = env('CHARGILY_KEY', default='') #type:ignore
+CHARGILY_SECRET = env('CHARGILY_SECRET', default='') #type:ignore
+CHARGILY_BASE_URL = env('CHARGILY_BASE_URL', default='https://pay.chargily.net/test/api/v2/') #type:ignore
+CHARGILY_SUCCESS_URL = env('CHARGILY_SUCCESS_URL', default='http://localhost:8000/billing/payment-success/') #type:ignore
+CHARGILY_FAILURE_URL = env('CHARGILY_FAILURE_URL', default='http://localhost:8000/billing/payment-failure/') #type:ignore
+CHARGILY_WEBHOOK_URL = env('CHARGILY_WEBHOOK_URL', default='http://localhost:8000/billing/webhook/') #type:ignore
+
 
 # Application definition
 
