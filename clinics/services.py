@@ -16,7 +16,7 @@ class SpecialtyService:
 
     @staticmethod
     def suggest(query, limit=10):
-        query = (query or "").strip()
+        query = (query or "").strip() 
 
         if not query:
             return Specialty.objects.none()

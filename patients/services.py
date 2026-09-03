@@ -1,5 +1,6 @@
 from .models import Patient
 
+from billing.services import SubscriptionService
 
 class PatientService:
     @staticmethod
@@ -12,15 +13,20 @@ class PatientService:
 
     @staticmethod
     def create_patient(
-        *, 
-        clinic, 
-        first_name, 
-        last_name, 
+        *,
+        clinic,
+        first_name,
+        last_name,
         date_of_birth=None,
         approximate_age=None,
-        phone="", 
-        address="", 
-        reason_for_visit=""):
+        phone="",
+        address="",
+        reason_for_visit="",
+    ):
+        if not SubscriptionService.can_add_patient(clinic):
+            raise ValueError(
+                "Your Trial plan is limited to 50 patients. Upgrade to continue adding patients."
+            )
 
         return Patient.objects.create(
             clinic=clinic,
@@ -28,7 +34,7 @@ class PatientService:
             last_name=last_name,
             date_of_birth=date_of_birth,
             approximate_age=approximate_age,
-            phone=phone, 
+            phone=phone,
             address=address,
-            reason_for_visit=reason_for_visit)
-
+            reason_for_visit=reason_for_visit,
+        )
