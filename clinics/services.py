@@ -1,6 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+
+from billing.services import SubscriptionService
+
+
 from accounts.models import User
 
 from .models import Clinic, Specialty
@@ -44,6 +48,11 @@ class StaffService:
     @staticmethod
     @transaction.atomic
     def create_doctor(*, clinic, email, password, first_name, last_name, specialty):
+        if not SubscriptionService.can_add_doctor(clinic):
+            raise ValueError(
+                "Your current plan allows only 1 doctor. Upgrade to Pay-per-visit for unlimited staff."
+            )
+
         user = User.objects.create_doctor( #type:ignore
             email=email, password=password, clinic=clinic,
             first_name=first_name, last_name=last_name,
@@ -56,6 +65,11 @@ class StaffService:
     def create_secretary(*, clinic, created_by, email, password, first_name, last_name):
         if created_by.clinic_id != clinic.id:
             raise ValueError("The creating doctor does not belong to this clinic.")
+
+        if not SubscriptionService.can_add_secretary(clinic):
+            raise ValueError(
+                "Your current plan allows only 1 secretary. Upgrade to Pay-per-visit for unlimited staff."
+            )
 
         user = User.objects.create_secretary( #type:ignore
             email=email, password=password, clinic=clinic,
@@ -113,6 +127,8 @@ class ClinicService:
             clinic=clinic,
             specialty=specialty
         )
+
+        SubscriptionService.create_trial(clinic)
 
         return clinic, doctor
 
