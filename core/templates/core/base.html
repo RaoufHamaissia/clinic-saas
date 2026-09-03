@@ -54,16 +54,15 @@
 
             <nav>
                 <ul class="nav flex-column">
-                    {% if request.user.is_superuser %}
-                        <li class="nav-item">
-                            <a href="{% url "core:audit_log" %}" class="nav-link {% if request.resolver_match.view_name == 'core:audit_log' %}active{% endif %}">
-                                Audit Log
-                            </a>
-                        </li>
-                    {% endif %}
+                    
                     <li class="nav-item">
                         <a href="{% url "core:dashboard" %}" class="nav-link {% if request.resolver_match.view_name == 'core:dashboard' %}active{% endif %}">
                             Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url "accounts:edit_profile" %}" class="nav-link {% if request.resolver_match.view_name == 'accounts:edit_profile' %}active{% endif %}">
+                            My Profile
                         </a>
                     </li>
                     <li class="nav-item">
@@ -94,11 +93,14 @@
                             </a>
                         </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            Settings
-                        </a>
-                    </li>
+                    {% if request.user.is_superuser %}
+                        <li class="nav-item">
+                            <a href="{% url "core:audit_log" %}" class="nav-link {% if request.resolver_match.view_name == 'core:audit_log' %}active{% endif %}">
+                                Audit Log
+                            </a>
+                        </li>
+                    {% endif %}
+                    
                     {% if request.user.is_clinic_admin %}
                         <li class="nav-item">
                             <a href="{% url "billing:status" %}" class="nav-link {% if request.resolver_match.app_name == 'billing' %}active{% endif %}">
@@ -106,6 +108,11 @@
                             </a>
                         </li>
                     {% endif %}
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            Settings
+                        </a>
+                    </li>
                 </ul>
             </nav>
          </aside>
