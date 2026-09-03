@@ -1,0 +1,9 @@
+{% extends "core/base.html" %}
+{% block title %}Payment Failed | MediCore{% endblock title %}
+{% block page_title %}Payment failed{% endblock page_title %}
+{% block content %}
+    <div class="alert alert-danger">
+        Your payment could not be completed. Please try again.
+    </div>
+    <a href="{% url 'billing:status' %}" class="btn btn-primary">Back to billing</a>
+{% endblock content %}

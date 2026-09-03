@@ -1,0 +1,9 @@
+{% extends "core/base.html" %}
+{% block title %}Payment Successful | MediCore{% endblock title %}
+{% block page_title %}Payment successful{% endblock page_title %}
+{% block content %}
+    <div class="alert alert-success">
+        Your payment was received. It may take a moment for the invoice status to update.
+    </div>
+    <a href="{% url 'billing:status' %}" class="btn btn-primary">Back to billing</a>
+{% endblock content %}
