@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "patients",
     "appointments",
     "records",
+    "billing",
     "phonenumber_field",
 ]
 
