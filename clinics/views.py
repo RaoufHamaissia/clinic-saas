@@ -92,6 +92,8 @@ def add_doctor(request):
                 )
             except IntegrityError:
                 form.add_error("email", "An account with this email already exists.")
+            except ValueError as e:
+                form.add_error(None, str(e))
             else:
                 messages.success(request, "Doctor added successfully")
                 return redirect("clinics:doctor_list")
@@ -116,10 +118,8 @@ def secretary_list(request):
 @login_required
 def add_secretary(request):
     clinic = _require_clinic_admin(request)
-
-    #creating_doctor = get_object_or_404(request.user.doctor_profile.__class__, pk=request.user.doctor_profile.pk)
     creating_doctor = request.user.doctor_profile
-    
+
     if request.method == "POST":
         form = SecretaryCreateForm(request.POST)
 
@@ -135,6 +135,8 @@ def add_secretary(request):
                 )
             except IntegrityError:
                 form.add_error("email", "An account with this email already exists.")
+            except ValueError as e:
+                form.add_error(None, str(e))
             else:
                 messages.success(request, "Secretary added successfully")
                 return redirect("clinics:secretary_list")
@@ -144,3 +146,5 @@ def add_secretary(request):
 
     context = {"form": form}
     return render(request, "clinics/secretary_add.html", context)
+
+    
