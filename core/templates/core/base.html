@@ -99,6 +99,13 @@
                             Settings
                         </a>
                     </li>
+                    {% if request.user.is_clinic_admin %}
+                        <li class="nav-item">
+                            <a href="{% url "billing:status" %}" class="nav-link {% if request.resolver_match.app_name == 'billing' %}active{% endif %}">
+                                Billing
+                            </a>
+                        </li>
+                    {% endif %}
                 </ul>
             </nav>
          </aside>
