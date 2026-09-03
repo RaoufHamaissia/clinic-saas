@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+
+from billing.services import BillingService
 
 from .models import Appointment, AppointmentType
 
@@ -82,7 +83,6 @@ class AppointmentService:
             is_walk_in=False,
             created_by=created_by,
         )
-
     @staticmethod
     def create_walk_in(*, clinic, patient, doctor, appointment_type, created_by):
         if patient.clinic_id != clinic.id:
@@ -91,7 +91,7 @@ class AppointmentService:
         if doctor.clinic_id != clinic.id:
             raise ValueError("Doctor does not belong to this clinic.")
 
-        return Appointment.objects.create(
+        appointment = Appointment.objects.create(
             clinic=clinic,
             patient=patient,
             doctor=doctor,
@@ -102,6 +102,9 @@ class AppointmentService:
             created_by=created_by,
         )
 
+        BillingService.record_visit(appointment)
+
+        return appointment
     @staticmethod
     def update_status(*, appointment, new_status):
         valid_statuses = dict(Appointment.Status.choices)
@@ -111,5 +114,7 @@ class AppointmentService:
 
         appointment.status = new_status
         appointment.save(update_fields=["status", "updated_at"])
+
+        BillingService.record_visit(appointment)
 
         return appointment
