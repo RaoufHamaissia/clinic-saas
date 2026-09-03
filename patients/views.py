@@ -49,27 +49,28 @@ def add_patient(request):
         form = PatientForm(request.POST)
 
         if form.is_valid():
-            PatientService.create_patient(
-                clinic=clinic,
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name'],
-                date_of_birth=form.cleaned_data['date_of_birth'],
-                approximate_age=form.cleaned_data['approximate_age'],
-                phone=form.cleaned_data['phone'],
-                address=form.cleaned_data['address'],
-                reason_for_visit=form.cleaned_data['reason_for_visit'],
-            )
+            try:
+                PatientService.create_patient(
+                    clinic=clinic,
+                    first_name=form.cleaned_data["first_name"],
+                    last_name=form.cleaned_data["last_name"],
+                    date_of_birth=form.cleaned_data["date_of_birth"],
+                    approximate_age=form.cleaned_data["approximate_age"],
+                    phone=form.cleaned_data["phone"],
+                    address=form.cleaned_data["address"],
+                    reason_for_visit=form.cleaned_data["reason_for_visit"],
+                )
+            except ValueError as e:
+                form.add_error(None, str(e))
+            else:
+                messages.success(request, "Patient added successfully")
+                return redirect("patients:list")
 
-            messages.success(request, "Patient added successfully")
-
-            return redirect("patients:list")
-        
     else:
         form = PatientForm()
 
     context = {"form": form}
     return render(request, "patients/add.html", context)
-
 def _get_patient_or_404(clinic, patient_id):
     return get_object_or_404(Patient.objects.for_clinic(clinic), pk=patient_id) #type:ignore
 
