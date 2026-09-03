@@ -35,6 +35,8 @@ urlpatterns = [
 
     path("records/", include("records.urls")),
 
+    path("billing/", include("billing.urls")),
+
     
 ]
 
