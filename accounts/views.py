@@ -3,9 +3,9 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 
-from django.contrib.auth.forms import PasswordChangeForm
 
-from .forms import LoginForm, ProfileForm
+
+from .forms import LoginForm, ProfileForm, StyledPasswordChangeForm
 
 
 # Create your views here.
@@ -64,7 +64,7 @@ def edit_profile(request):
     if request.method == "POST":
         if "update_profile" in request.POST:
             profile_form = ProfileForm(request.POST, instance=request.user)
-            password_form = PasswordChangeForm(request.user)
+            password_form = StyledPasswordChangeForm(request.user)
 
             if profile_form.is_valid():
                 profile_form.save()
@@ -73,7 +73,7 @@ def edit_profile(request):
 
         elif "change_password" in request.POST:
             profile_form = ProfileForm(instance=request.user)
-            password_form = PasswordChangeForm(request.user, request.POST)
+            password_form = StyledPasswordChangeForm(request.user, request.POST)
 
             if password_form.is_valid():
                 user = password_form.save()
@@ -83,11 +83,11 @@ def edit_profile(request):
 
         else:
             profile_form = ProfileForm(instance=request.user)
-            password_form = PasswordChangeForm(request.user)
+            password_form = StyledPasswordChangeForm(request.user)
 
     else:
         profile_form = ProfileForm(instance=request.user)
-        password_form = PasswordChangeForm(request.user)
+        password_form = StyledPasswordChangeForm(request.user)
 
     context = {"profile_form": profile_form, "password_form": password_form}
     return render(request, "accounts/edit_profile.html", context)
