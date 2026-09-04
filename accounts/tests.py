@@ -152,3 +152,13 @@ class ProfileEditTests(TestCase):
         # If update_session_auth_hash was forgotten, this would now redirect to login
         response = self.client.get(reverse("core:dashboard"))
         self.assertEqual(response.status_code, 200)
+
+    def test_password_form_fields_have_bootstrap_styling(self):
+        self.client.login(email="doctor@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("accounts:edit_profile"))
+
+        password_form = response.context["password_form"]
+        self.assertIn("form-control", password_form.fields["old_password"].widget.attrs.get("class", ""))
+        self.assertIn("form-control", password_form.fields["new_password1"].widget.attrs.get("class", ""))
+        self.assertIn("form-control", password_form.fields["new_password2"].widget.attrs.get("class", ""))
