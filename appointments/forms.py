@@ -104,3 +104,48 @@ class WalkInForm(forms.Form):
             raise forms.ValidationError("Appointment type is required.")
 
         return AppointmentTypeService.get_or_create(name)
+
+
+class AppointmentEditForm(forms.Form):
+    doctor = forms.ModelChoiceField(
+        queryset=DoctorProfile.objects.none(),
+        label="Doctor",
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+
+    type = forms.CharField(
+        max_length=150,
+        label="Appointment type",
+        widget=forms.TextInput(attrs={
+            "class": "form-control appointment-type-input",
+            "placeholder": "e.g. Colonoscopy",
+            "list": "appointment-type-suggestions",
+            "autocomplete": "off",
+        })
+    )
+
+    scheduled_at = forms.DateTimeField(
+        required=False,
+        label="Date & time",
+        widget=forms.DateTimeInput(
+            attrs={"class": "form-control", "type": "datetime-local"},
+            format="%Y-%m-%dT%H:%M",
+        ),
+        input_formats=["%Y-%m-%dT%H:%M"],
+    )
+
+    def __init__(self, *args, clinic=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if clinic is not None:
+            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
+
+    def clean_type(self):
+        name = self.cleaned_data["type"].strip()
+
+        if not name:
+            raise forms.ValidationError("Appointment type is required.")
+
+        return AppointmentTypeService.get_or_create(name)
+
+
