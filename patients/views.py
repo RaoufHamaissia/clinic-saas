@@ -125,6 +125,49 @@ def patient_detail(request, pk):
     }
     return render(request, "patients/detail.html", context)
 
+
+
+
+@login_required
+def edit_patient(request, pk):
+    clinic = _require_clinic(request)
+
+    patient = get_object_or_404(Patient.objects.for_clinic(clinic), pk=pk) #type:ignore
+
+    if request.method == "POST":
+        form = PatientForm(request.POST)
+
+        if form.is_valid():
+            PatientService.update_patient(
+                patient=patient,
+                first_name=form.cleaned_data["first_name"],
+                last_name=form.cleaned_data["last_name"],
+                date_of_birth=form.cleaned_data["date_of_birth"],
+                approximate_age=form.cleaned_data["approximate_age"],
+                phone=form.cleaned_data["phone"],
+                address=form.cleaned_data["address"],
+                reason_for_visit=form.cleaned_data["reason_for_visit"],
+            )
+
+            messages.success(request, "Patient updated")
+            return redirect("patients:detail", pk=patient.pk)
+
+    else:
+        form = PatientForm(initial={
+            "first_name": patient.first_name,
+            "last_name": patient.last_name,
+            "date_of_birth": patient.date_of_birth,
+            "approximate_age": patient.approximate_age,
+            "phone": patient.phone,
+            "address": patient.address,
+            "reason_for_visit": patient.reason_for_visit,
+        })
+
+    context = {"form": form, "patient": patient}
+    return render(request, "patients/edit.html", context)
+
+
+
 @login_required
 def add_prescription(request, patient_id):
     clinic = _require_clinic(request)
