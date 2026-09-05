@@ -192,6 +192,25 @@ class ProcedureReportService:
 
         return qs
 
+    @staticmethod
+    def update_report(*, report, doctor, notes, items):
+        if not _is_same_day(report):
+            raise ValueError("This procedure report can only be edited on the day it was created.")
+
+        if doctor.clinic_id != report.clinic_id:
+            raise ValueError("Doctor does not belong to this clinic.")
+
+        report.doctor = doctor
+        report.notes = notes
+        report.save()
+
+        report.items.all().delete()
+        ProcedureItem.objects.bulk_create([
+            ProcedureItem(report=report, **item) for item in items
+        ])
+
+        return report
+
 
 
 class LabworkDemandService:
