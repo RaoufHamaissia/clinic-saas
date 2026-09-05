@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings
 # Create your models here.
 
 class Subscription(models.Model):
@@ -90,3 +90,49 @@ class Invoice(models.Model):
 
     def __str__(self):
         return f"Invoice {self.pk} — {self.clinic} — {self.amount_due} DA ({self.get_status_display()})" #type:ignore
+
+
+class PlanChangerRequest(models.Model):
+    class PaymentMethod(models.TextChoices):
+        BANK_TRANSFER = "bank_transfer", "Bank transfer"
+        CCP = "ccp", "CCP (Algérie Poste)"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending review"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    clinic = models.ForeignKey("clinics.Clinic", on_delete=models.CASCADE, related_name="plan_change_requests")
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, related_name="plan_change_requests"
+    )
+
+    requested_plan = models.CharField(
+        max_length=20,
+        choices= [c for c in Subscription.Plan.choices if c[0] != Subscription.Plan.TRIAL]
+    )
+    payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices)
+
+    proof_file = models.FileField(upload_to="billing/payment_proofs/%Y/%m/")
+    reference_note = models.CharField(
+        max_length=255, blank=True,
+        help_text="Optional — transfer reference number, sender name, or other note to help matching."
+    )
+
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="reviewed_plan_change_requests"
+    )
+
+    rejection_reason = models.CharField(max_length=255, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.clinic} → {self.get_requested_plan_display()} ({self.get_status_display()})" #type:ignore
