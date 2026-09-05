@@ -254,4 +254,22 @@ class LabworkDemandService:
 
         return qs
 
+    @staticmethod
+    def update_demand(*, demand, doctor, items):
+        if not _is_same_day(demand):
+            raise ValueError("This labwork demand can only be edited on the day it was created.")
+
+        if doctor.clinic_id != demand.clinic_id:
+            raise ValueError("Doctor does not belong to this clinic.")
+
+        demand.doctor = doctor
+        demand.save()
+
+        demand.items.all().delete()
+        LabworkItem.objects.bulk_create([
+            LabworkItem(demand=demand, **item) for item in items
+        ])
+
+        return demand
+
 
