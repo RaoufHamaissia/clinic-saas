@@ -5,6 +5,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+from .profiles import DoctorProfile, SecretaryProfile
 
 from .forms import ClinicRegistrationForm, DoctorCreateForm, SecretaryCreateForm, ClinicSettingsForm
 from .services import ClinicService, SpecialtyService, StaffService
@@ -165,4 +168,58 @@ def clinic_settings(request):
         form = ClinicSettingsForm(instance=clinic)
 
     context = {"form": form}
-    return render(request, "clinics/settings.html", context)    
+    return render(request, "clinics/settings.html", context)  
+
+@login_required
+def doctor_detail(request, pk):
+    clinic = _require_clinic_admin(request)
+
+    doctor = get_object_or_404(DoctorProfile.objects.filter(clinic=clinic), pk=pk)
+
+    context = {"doctor": doctor}
+    return render(request, "clinics/doctor_detail.html", context)
+
+
+@login_required
+def secretary_detail(request, pk):
+    clinic = _require_clinic_admin(request)
+
+    secretary = get_object_or_404(SecretaryProfile.objects.filter(clinic=clinic), pk=pk)
+
+    context = {"secretary": secretary}
+    return render(request, "clinics/secretary_detail.html", context)
+
+
+@login_required
+@require_POST
+def toggle_doctor_active(request, pk):
+    clinic = _require_clinic_admin(request)
+
+    doctor = get_object_or_404(DoctorProfile.objects.filter(clinic=clinic), pk=pk)
+
+    try:
+        StaffService.set_active(profile=doctor, is_active=not doctor.user.is_active)
+    except ValueError as e:
+        messages.error(request, str(e))
+    else:
+        status = "activated" if doctor.user.is_active else "deactivated"
+        messages.success(request, f"Doctor {status}")
+
+    return redirect("clinics:doctor_detail", pk=pk)
+
+@login_required
+@require_POST
+def toggle_secretary_active(request, pk):
+    clinic = _require_clinic_admin(request)
+
+    secretary = get_object_or_404(SecretaryProfile.objects.filter(clinic=clinic), pk=pk)
+
+    try:
+        StaffService.set_active(profile=secretary, is_active=not secretary.user.is_active)
+    except ValueError as e:
+        messages.error(request, str(e))
+    else:
+        status = "activated" if secretary.user.is_active else "deactivated"
+        messages.success(request, f"Secretary {status}")
+
+    return redirect("clinics:secretary_detail", pk=pk)
