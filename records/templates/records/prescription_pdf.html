@@ -36,14 +36,12 @@
 
     <div class="meta">
         <div>
-            <strong>Patient:</strong> {{ prescription.patient }}<br>
+            <strong>Patient:</strong> {{ prescription.display_patient_name }}<br>
             {% if prescription.patient.age %}
                 <strong>Age:</strong> {{ prescription.patient.age }}<br>
             {% endif %}
         </div>
-        <div>
-            <strong>Date:</strong> {{ prescription.created_at|date:"Y-m-d" }}
-        </div>
+        <div><strong>Date:</strong> {{ prescription.created_at|date:"Y-m-d" }}</div>
     </div>
 
     <table>
