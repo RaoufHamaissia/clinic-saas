@@ -6,7 +6,7 @@ from clinics.forms import ClinicRegistrationForm
 
 from accounts.models import User
 from clinics.models import Clinic, Specialty
-from clinics.profiles import DoctorProfile
+from clinics.profiles import DoctorProfile, SecretaryProfile
 from clinics.services import ClinicService, StaffService
 
 from patients.models import Patient
@@ -336,4 +336,123 @@ class ClinicSettingsViewTests(TestCase):
         self.assertEqual(self.clinic.name, "New Clinic Name")
         self.assertEqual(self.clinic.document_header, "Confidential Medical Document")
 
-    
+
+
+class StaffDetailAndDeactivateTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.other_clinic = Clinic.objects.create(name="Clinic B")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+
+        self.admin_user = User.objects.create_clinic_admin( #type:ignore
+            email="admin@example.com", password="StrongPassword123!", clinic=self.clinic,
+        )
+        self.admin_doctor = DoctorProfile.objects.create(
+            user=self.admin_user, clinic=self.clinic, specialty=self.specialty
+        )
+
+        self.other_doctor_user = User.objects.create_doctor( #type:ignore
+            email="other-doc@example.com", password="StrongPassword123!", clinic=self.clinic,
+        )
+        self.other_doctor = DoctorProfile.objects.create(
+            user=self.other_doctor_user, clinic=self.clinic, specialty=self.specialty
+        )
+
+        self.secretary_user = User.objects.create_secretary( #type:ignore
+            email="sec@example.com", password="StrongPassword123!", clinic=self.clinic,
+        )
+        self.secretary = SecretaryProfile.objects.create(
+            user=self.secretary_user, clinic=self.clinic, created_by=self.admin_doctor
+        )
+
+    def test_doctor_detail_requires_admin(self):
+        self.client.login(email="other-doc@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("clinics:doctor_detail", args=[self.other_doctor.pk]))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_can_view_doctor_detail(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("clinics:doctor_detail", args=[self.other_doctor.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "other-doc@example.com")
+
+    def test_doctor_detail_404_for_other_clinic(self):
+        other_specialty = Specialty.objects.create(name="Cardiology")
+        other_admin = User.objects.create_clinic_admin( #type:ignore
+            email="other-admin@example.com", password="StrongPassword123!", clinic=self.other_clinic,
+        )
+        other_doctor = DoctorProfile.objects.create(
+            user=other_admin, clinic=self.other_clinic, specialty=other_specialty
+        )
+
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("clinics:doctor_detail", args=[other_doctor.pk]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_admin_can_deactivate_doctor(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("clinics:doctor_toggle_active", args=[self.other_doctor.pk]))
+
+        self.assertRedirects(response, reverse("clinics:doctor_detail", args=[self.other_doctor.pk]))
+
+        self.other_doctor_user.refresh_from_db()
+        self.assertFalse(self.other_doctor_user.is_active)
+
+    def test_deactivated_doctor_cannot_log_in(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+        self.client.post(reverse("clinics:doctor_toggle_active", args=[self.other_doctor.pk]))
+        self.client.logout()
+
+        response = self.client.post(reverse("accounts:login"), {
+            "email": "other-doc@example.com", "password": "StrongPassword123!",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+    def test_toggle_reactivates_inactive_doctor(self):
+        self.other_doctor_user.is_active = False
+        self.other_doctor_user.save()
+
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+        self.client.post(reverse("clinics:doctor_toggle_active", args=[self.other_doctor.pk]))
+
+        self.other_doctor_user.refresh_from_db()
+        self.assertTrue(self.other_doctor_user.is_active)
+
+    def test_cannot_deactivate_clinic_admin(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("clinics:doctor_toggle_active", args=[self.admin_doctor.pk]))
+
+        self.assertRedirects(response, reverse("clinics:doctor_detail", args=[self.admin_doctor.pk]))
+
+        self.admin_user.refresh_from_db()
+        self.assertTrue(self.admin_user.is_active)
+
+    def test_admin_can_deactivate_secretary(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("clinics:secretary_toggle_active", args=[self.secretary.pk]))
+
+        self.assertRedirects(response, reverse("clinics:secretary_detail", args=[self.secretary.pk]))
+
+        self.secretary_user.refresh_from_db()
+        self.assertFalse(self.secretary_user.is_active)
+
+    def test_secretary_detail_requires_admin(self):
+        self.client.login(email="sec@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("clinics:secretary_detail", args=[self.secretary.pk]))
+
+        self.assertEqual(response.status_code, 403)
+
+
