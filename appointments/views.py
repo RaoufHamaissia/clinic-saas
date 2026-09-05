@@ -6,8 +6,9 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from django.core.exceptions import ValidationError
 
-from .forms import AppointmentForm, WalkInForm, AppointmentTypeService
+from .forms import AppointmentForm, WalkInForm, AppointmentTypeService, AppointmentEditForm
 from .services import AppointmentService
 from .models import Appointment
 
@@ -131,4 +132,37 @@ def update_status(request, pk):
 
     return redirect("appointments:day")
 
+
+@login_required
+def edit_appointment(request, pk):
+    clinic = _require_clinic(request)
+
+    appointment = get_object_or_404(Appointment.objects.for_clinic(clinic).select_related("patient"), pk=pk) #type:ignore
+
+    if request.method == "POST":
+        form = AppointmentEditForm(request.POST, clinic=clinic)
+
+        if form.is_valid():
+            try:
+                AppointmentService.update_appointment(
+                    appointment=appointment,
+                    doctor=form.cleaned_data["doctor"],
+                    appointment_type=form.cleaned_data["type"],
+                    scheduled_at=form.cleaned_data.get("scheduled_at"),
+                )
+            except (ValueError, ValidationError) as e:
+                form.add_error(None, str(e))
+            else:
+                messages.success(request, "Appointment updated")
+                return redirect("patients:detail", pk=appointment.patient.pk)
+
+    else:
+        initial = {"doctor": appointment.doctor_id, "type": appointment.type.name if appointment.type else ""}
+        if not appointment.is_walk_in:
+            initial["scheduled_at"] = appointment.scheduled_at
+
+        form = AppointmentEditForm(clinic=clinic, initial=initial)
+
+    context = {"form": form, "appointment": appointment}
+    return render(request, "appointments/edit.html", context)
 
