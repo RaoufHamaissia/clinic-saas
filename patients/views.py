@@ -343,6 +343,49 @@ def add_procedure_report(request, patient_id):
     context = {"form": form, "formset": formset, "patient": patient}
     return render(request, "records/procedure_report_add.html", context)
 
+@login_required
+def edit_procedure_report(request, patient_id, pk):
+    clinic = _require_clinic(request)
+    patient = _get_patient_or_404(clinic, patient_id)
+    report = get_object_or_404(
+        ProcedureReport.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items"), pk=pk #type:ignore
+    )
+
+    if request.method == "POST":
+        form = ProcedureReportForm(request.POST, clinic=clinic)
+        formset = ProcedureItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            items = [
+                {"procedure_name": f.cleaned_data["procedure_name"], "findings": f.cleaned_data.get("findings", "")}
+                for f in formset
+                if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("procedure_name")
+            ]
+
+            try:
+                ProcedureReportService.update_report(
+                    report=report, doctor=form.cleaned_data["doctor"],
+                    notes=form.cleaned_data["notes"], items=items,
+                )
+            except ValueError as e:
+                form.add_error(None, str(e))
+            else:
+                messages.success(request, "Procedure report updated")
+                return redirect("records:procedure_report_print", pk=report.pk)
+
+    else:
+        form = ProcedureReportForm(clinic=clinic, initial={
+            "doctor": report.doctor_id, "notes": report.notes,
+        })
+        formset = ProcedureItemFormSet(initial=[
+            {"procedure_name": item.procedure_name, "findings": item.findings}
+            for item in report.items.all()
+        ])
+        formset.extra = max(formset.extra, len(report.items.all()) + 1)
+
+    context = {"form": form, "formset": formset, "patient": patient, "report": report}
+    return render(request, "records/procedure_report_edit.html", context)
+
 
 @login_required
 def add_labwork_demand(request, patient_id):
@@ -377,3 +420,54 @@ def add_labwork_demand(request, patient_id):
 
     context = {"form": form, "formset": formset, "patient": patient}
     return render(request, "records/labwork_demand_add.html", context)
+
+
+@login_required
+def edit_labwork_demand(request, patient_id, pk):
+    clinic = _require_clinic(request)
+    patient = _get_patient_or_404(clinic, patient_id)
+    demand = get_object_or_404(
+        LabworkDemand.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items"), pk=pk #type:ignore
+    )
+
+    if request.method == "POST":
+        form = LabworkDemandForm(request.POST, clinic=clinic)
+        formset = LabworkItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            items = [
+                {
+                    "test_name": f.cleaned_data["test_name"],
+                    "urgency": f.cleaned_data["urgency"],
+                    "clinical_indication": f.cleaned_data.get("clinical_indication", ""),
+                }
+                for f in formset
+                if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("test_name")
+            ]
+
+            try:
+                LabworkDemandService.update_demand(
+                    demand=demand, doctor=form.cleaned_data["doctor"], items=items,
+                )
+            except ValueError as e:
+                form.add_error(None, str(e))
+            else:
+                messages.success(request, "Labwork demand updated")
+                return redirect("records:labwork_demand_print", pk=demand.pk)
+
+    else:
+        form = LabworkDemandForm(clinic=clinic, initial={"doctor": demand.doctor_id})
+        formset = LabworkItemFormSet(initial=[
+            {
+                "test_name": item.test_name, "urgency": item.urgency,
+                "clinical_indication": item.clinical_indication,
+            }
+            for item in demand.items.all()
+        ])
+        formset.extra = max(formset.extra, len(demand.items.all()) + 1)
+
+    context = {"form": form, "formset": formset, "patient": patient, "demand": demand}
+    return render(request, "records/labwork_demand_edit.html", context)
+
+
+
