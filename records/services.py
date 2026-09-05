@@ -132,6 +132,20 @@ class DoctorNoteService:
 
         return qs
 
+    @staticmethod
+    def update_note(*, note, doctor, content):
+        if not _is_same_day(note):
+            raise ValueError("This note can only be edited on the day it was created.")
+
+        if doctor.clinic_id != note.clinic_id:
+            raise ValueError("Doctor does not belong to this clinic.")
+
+        note.doctor = doctor
+        note.content = content
+        note.save()
+
+        return note
+
 
 
 class ProcedureReportService:
