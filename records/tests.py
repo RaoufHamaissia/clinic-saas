@@ -86,6 +86,39 @@ class PrescriptionServiceTests(TestCase):
 
         self.assertEqual(results.count(), 1)
 
+    def test_prescription_uses_patient_name_by_default(self):
+        prescription = PrescriptionService.create_prescription(
+            clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a, items=[]
+        )
+
+        self.assertEqual(prescription.display_patient_name, str(self.patient_a))
+
+    def test_prescription_name_override_does_not_touch_patient_record(self):
+        original_name = f"{self.patient_a.first_name} {self.patient_a.last_name}"
+
+        prescription = PrescriptionService.create_prescription(
+            clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a, items=[],
+            patient_name_override="Jean Dupont",
+        )
+
+        self.assertEqual(prescription.display_patient_name, "Jean Dupont")
+
+        self.patient_a.refresh_from_db()
+        self.assertEqual(f"{self.patient_a.first_name} {self.patient_a.last_name}", original_name)
+
+    def test_update_prescription_can_change_name_override(self):
+        prescription = PrescriptionService.create_prescription(
+            clinic=self.clinic_a, patient=self.patient_a, doctor=self.doctor_a, items=[],
+        )
+
+        PrescriptionService.update_prescription(
+            prescription=prescription, doctor=self.doctor_a, notes="", items=[],
+            patient_name_override="Corrected Name",
+        )
+
+        prescription.refresh_from_db()
+        self.assertEqual(prescription.patient_name_override, "Corrected Name")
+
 
 class MedicationServiceTests(TestCase):
 
