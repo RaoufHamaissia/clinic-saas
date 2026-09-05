@@ -38,3 +38,18 @@ class PatientService:
             address=address,
             reason_for_visit=reason_for_visit,
         )
+
+    @staticmethod
+    def update_patient(*, patient, first_name, last_name, date_of_birth=None,
+                        approximate_age=None, phone="", address="", reason_for_visit=""):
+        patient.first_name = first_name
+        patient.last_name = last_name
+        patient.date_of_birth = date_of_birth
+        patient.approximate_age = approximate_age
+        patient.phone = phone
+        patient.address = address
+        patient.reason_for_visit = reason_for_visit
+        patient.save()
+
+        return patient
+    
