@@ -14,6 +14,15 @@ class PrescriptionForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select"})
     )
 
+    patient_name_override = forms.CharField(
+        max_length=300, required=False,
+        label="Patient name on this prescription (optional)",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Leave blank to use the patient's name on file",
+        })
+    )
+
     notes = forms.CharField(
         required=False,
         label="Notes",
