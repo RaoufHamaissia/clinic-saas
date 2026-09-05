@@ -105,6 +105,33 @@ class AppointmentService:
         BillingService.record_visit(appointment)
 
         return appointment
+
+    EDITABLE_STATUSES = (
+        Appointment.Status.SCHEDULED, Appointment.Status.ARRIVED,
+        Appointment.Status.WAITING, Appointment.Status.WITH_DOCTOR,
+    )
+
+    @staticmethod
+    def update_appointment(*, appointment, doctor, appointment_type, scheduled_at):
+        if appointment.status not in AppointmentService.EDITABLE_STATUSES:
+            raise ValueError("This appointment has already been completed, cancelled, or marked no-show and can no longer be edited.")
+
+        if doctor.clinic_id != appointment.clinic_id:
+            raise ValueError("Doctor does not belong to this clinic.")
+
+        if not appointment.is_walk_in and scheduled_at < timezone.now():
+            raise ValidationError("You can't reschedule an appointment into the past.")
+
+        appointment.doctor = doctor
+        appointment.type = appointment_type
+        if not appointment.is_walk_in:
+            appointment.scheduled_at = scheduled_at
+        appointment.save()
+
+        return appointment    
+
+
+
     @staticmethod
     def update_status(*, appointment, new_status):
         valid_statuses = dict(Appointment.Status.choices)
