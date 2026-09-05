@@ -21,6 +21,10 @@ from .services import (
 )
 from django.db import connection
 
+
+
+
+
 class PrescriptionServiceTests(TestCase):
 
     def setUp(self):
@@ -118,6 +122,104 @@ class PrescriptionServiceTests(TestCase):
 
         prescription.refresh_from_db()
         self.assertEqual(prescription.patient_name_override, "Corrected Name")
+
+
+class PrescriptionViewTests(TestCase):
+
+    def setUp(self):
+        self.clinic_a = Clinic.objects.create(name="Clinic A")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.user = User.objects.create_user(email="staff-a@example.com", password="StrongPassword123!", clinic=self.clinic_a) #type:ignore
+        self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic_a, specialty=self.specialty)
+        self.patient = Patient.objects.create(clinic=self.clinic_a, first_name="John", last_name="A")
+
+    def test_add_prescription_creates_record_and_redirects_to_print(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        data = {
+            "doctor": self.doctor.pk,
+            "notes": "",
+            "form-TOTAL_FORMS": "3",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-medication_name": "Amoxicillin",
+            "form-0-dosage": "500mg",
+            "form-0-frequency": "3x/day",
+            "form-0-duration": "7 days",
+            "form-0-instructions": "",
+            "form-1-medication_name": "",
+            "form-1-dosage": "",
+            "form-1-frequency": "",
+            "form-1-duration": "",
+            "form-1-instructions": "",
+            "form-2-medication_name": "",
+            "form-2-dosage": "",
+            "form-2-frequency": "",
+            "form-2-duration": "",
+            "form-2-instructions": "",
+        }
+
+        response = self.client.post(reverse("patients:add_prescription", args=[self.patient.pk]), data)
+
+        prescription = Prescription.objects.get(patient=self.patient)
+
+        self.assertRedirects(response, reverse("records:prescription_print", args=[prescription.pk]))
+        self.assertEqual(prescription.items.count(), 1) #type:ignore
+        self.assertEqual(prescription.items.first().medication_name, "Amoxicillin") #type:ignore
+
+    def test_print_returns_pdf(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        prescription = PrescriptionService.create_prescription(
+            clinic=self.clinic_a, patient=self.patient, doctor=self.doctor,
+            items=[{"medication_name": "Amoxicillin", "dosage": "", "frequency": "", "duration": "", "instructions": ""}],
+        )
+
+        response = self.client.get(reverse("records:prescription_print", args=[prescription.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response.content.startswith(b"%PDF"))
+
+    def test_print_rejects_prescription_from_other_clinic(self):
+        clinic_b = Clinic.objects.create(name="Clinic B")
+        other_user = User.objects.create_user(email="doc-b@example.com", password="pw", clinic=clinic_b) #type:ignore
+        other_doctor = DoctorProfile.objects.create(user=other_user, clinic=clinic_b, specialty=self.specialty)
+        other_patient = Patient.objects.create(clinic=clinic_b, first_name="Jane", last_name="B")
+        other_prescription = PrescriptionService.create_prescription(
+            clinic=clinic_b, patient=other_patient, doctor=other_doctor, items=[]
+        )
+
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("records:prescription_print", args=[other_prescription.pk]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_add_prescription_with_name_override(self):
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        data = {
+            "doctor": self.doctor.pk,
+            "patient_name_override": "Preferred Name",
+            "notes": "",
+            "form-TOTAL_FORMS": "3", "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0", "form-MAX_NUM_FORMS": "1000",
+            "form-0-medication_name": "", "form-0-dosage": "", "form-0-frequency": "",
+            "form-0-duration": "", "form-0-instructions": "",
+            "form-1-medication_name": "", "form-1-dosage": "", "form-1-frequency": "",
+            "form-1-duration": "", "form-1-instructions": "",
+            "form-2-medication_name": "", "form-2-dosage": "", "form-2-frequency": "",
+            "form-2-duration": "", "form-2-instructions": "",
+        }
+
+        response = self.client.post(reverse("patients:add_prescription", args=[self.patient.pk]), data)
+
+        prescription = Prescription.objects.get(patient=self.patient)
+        self.assertRedirects(response, reverse("records:prescription_print", args=[prescription.pk]))
+        self.assertEqual(prescription.patient_name_override, "Preferred Name")
+
 
 
 class MedicationServiceTests(TestCase):
@@ -442,80 +544,6 @@ class ProcedureAndLabworkViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.content.startswith(b"%PDF"))
-
-
-class PrescriptionViewTests(TestCase):
-
-    def setUp(self):
-        self.clinic_a = Clinic.objects.create(name="Clinic A")
-        self.specialty = Specialty.objects.create(name="General Medicine")
-        self.user = User.objects.create_user(email="staff-a@example.com", password="StrongPassword123!", clinic=self.clinic_a) #type:ignore
-        self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic_a, specialty=self.specialty)
-        self.patient = Patient.objects.create(clinic=self.clinic_a, first_name="John", last_name="A")
-
-    def test_add_prescription_creates_record_and_redirects_to_print(self):
-        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
-
-        data = {
-            "doctor": self.doctor.pk,
-            "notes": "",
-            "form-TOTAL_FORMS": "3",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "0",
-            "form-MAX_NUM_FORMS": "1000",
-            "form-0-medication_name": "Amoxicillin",
-            "form-0-dosage": "500mg",
-            "form-0-frequency": "3x/day",
-            "form-0-duration": "7 days",
-            "form-0-instructions": "",
-            "form-1-medication_name": "",
-            "form-1-dosage": "",
-            "form-1-frequency": "",
-            "form-1-duration": "",
-            "form-1-instructions": "",
-            "form-2-medication_name": "",
-            "form-2-dosage": "",
-            "form-2-frequency": "",
-            "form-2-duration": "",
-            "form-2-instructions": "",
-        }
-
-        response = self.client.post(reverse("patients:add_prescription", args=[self.patient.pk]), data)
-
-        prescription = Prescription.objects.get(patient=self.patient)
-
-        self.assertRedirects(response, reverse("records:prescription_print", args=[prescription.pk]))
-        self.assertEqual(prescription.items.count(), 1) #type:ignore
-        self.assertEqual(prescription.items.first().medication_name, "Amoxicillin") #type:ignore
-
-    def test_print_returns_pdf(self):
-        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
-
-        prescription = PrescriptionService.create_prescription(
-            clinic=self.clinic_a, patient=self.patient, doctor=self.doctor,
-            items=[{"medication_name": "Amoxicillin", "dosage": "", "frequency": "", "duration": "", "instructions": ""}],
-        )
-
-        response = self.client.get(reverse("records:prescription_print", args=[prescription.pk]))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response["Content-Type"], "application/pdf")
-        self.assertTrue(response.content.startswith(b"%PDF"))
-
-    def test_print_rejects_prescription_from_other_clinic(self):
-        clinic_b = Clinic.objects.create(name="Clinic B")
-        other_user = User.objects.create_user(email="doc-b@example.com", password="pw", clinic=clinic_b) #type:ignore
-        other_doctor = DoctorProfile.objects.create(user=other_user, clinic=clinic_b, specialty=self.specialty)
-        other_patient = Patient.objects.create(clinic=clinic_b, first_name="Jane", last_name="B")
-        other_prescription = PrescriptionService.create_prescription(
-            clinic=clinic_b, patient=other_patient, doctor=other_doctor, items=[]
-        )
-
-        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
-
-        response = self.client.get(reverse("records:prescription_print", args=[other_prescription.pk]))
-
-        self.assertEqual(response.status_code, 404)
 
 
 class DocumentProfileViewTests(TestCase):
