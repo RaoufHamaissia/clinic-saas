@@ -106,7 +106,12 @@
                                     <tr>
                                         <td>{{ p.created_at|date:"Y-m-d H:i" }}</td>
                                         <td>{{ p.doctor }}</td>
-                                        <td><a href="{% url 'records:prescription_print' p.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a></td>
+                                        <td>
+                                            <a href="{% url 'records:prescription_print' p.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a>
+                                            {% if p.created_at|date:"Y-m-d" == today %}
+                                                <a href="{% url 'patients:edit_prescription' patient.pk p.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -142,7 +147,12 @@
                                     <tr>
                                         <td>{{ note.created_at|date:"Y-m-d H:i" }}</td>
                                         <td>{{ note.doctor }}</td>
-                                        <td><a href="{% url 'records:note_print' note.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a></td>
+                                        <td>
+                                            <a href="{% url 'records:note_print' note.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a>
+                                        {% if note.created_at|date:"Y-m-d" == today %}
+                                            <a href="{% url 'patients:edit_note' patient.pk note.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                        {% endif %}
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -178,7 +188,13 @@
                                     <tr>
                                         <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
                                         <td>{{ r.doctor }}</td>
-                                        <td><a href="{% url 'records:procedure_report_print' r.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a></td>
+                                        <td>
+                                            <a href="{% url 'records:procedure_report_print' r.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a>
+                                            {% if r.created_at|date:"Y-m-d" == today %}
+                                                <a href="{% url 'patients:edit_procedure_report' patient.pk r.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                            {% endif %}
+                                        </td>
+
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -214,7 +230,12 @@
                                     <tr>
                                         <td>{{ d.created_at|date:"Y-m-d H:i" }}</td>
                                         <td>{{ d.doctor }}</td>
-                                        <td><a href="{% url 'records:labwork_demand_print' d.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a></td>
+                                        <td>
+                                            <a href="{% url 'records:labwork_demand_print' d.pk %}" target="_blank" class="btn btn-sm btn-outline-primary">Print</a>
+                                            {% if d.created_at|date:"Y-m-d" == today %}
+                                                <a href="{% url 'patients:edit_labwork_demand' patient.pk d.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
