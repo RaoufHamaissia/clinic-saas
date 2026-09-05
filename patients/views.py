@@ -20,6 +20,7 @@ from .forms import PatientForm
 from .services import PatientService
 from .models import Patient
 
+from django.utils import timezone
 
 # Create your views here.
 
@@ -126,6 +127,7 @@ def patient_detail(request, pk):
             end_date=filters["lab"]["end"] or None,
         ),
         "filters": filters,
+        "today": timezone.localdate().isoformat(),
     }
     return render(request, "patients/detail.html", context)
 
