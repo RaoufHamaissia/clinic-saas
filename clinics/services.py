@@ -86,7 +86,30 @@ class StaffService:
     def get_secretaries(clinic):
         return SecretaryProfile.objects.filter(clinic=clinic).select_related("user", "created_by__user")
 
+    @staticmethod
+    def get_doctor(clinic, doctor_id):
+        return DoctorProfile.objects.select_related("user", "specialty").get(clinic=clinic, pk=doctor_id)
 
+    @staticmethod
+    def get_secretary(clinic, secretary_id):
+        return SecretaryProfile.objects.select_related("user", "created_by__user").get(clinic=clinic, pk=secretary_id)
+
+    @staticmethod
+    def set_active(*, profile, is_active):
+        """
+        Works for both DoctorProfile and SecretaryProfile — both expose
+        `.user`, so this stays generic rather than duplicated per role.
+        Guards against a clinic-admin deactivating their own account,
+        which would otherwise be an unrecoverable lockout (no other admin
+        exists to reactivate them).
+        """
+        if profile.user.is_clinic_admin and not is_active:
+            raise ValueError("You cannot deactivate the clinic administrator account.")
+
+        profile.user.is_active = is_active
+        profile.user.save(update_fields=["is_active"])
+
+        return profile
 
 
 class ClinicService:
