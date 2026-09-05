@@ -199,6 +199,7 @@ def add_prescription(request, patient_id):
             prescription = PrescriptionService.create_prescription(
                 clinic=clinic, patient=patient, doctor=form.cleaned_data["doctor"],
                 notes=form.cleaned_data["notes"], items=items,
+                patient_name_override=form.cleaned_data["patient_name_override"],
             )
 
             messages.success(request, "Prescription created")
@@ -240,6 +241,7 @@ def edit_prescription(request, patient_id, pk):
                 PrescriptionService.update_prescription(
                     prescription=prescription, doctor=form.cleaned_data["doctor"],
                     notes=form.cleaned_data["notes"], items=items,
+                    patient_name_override=form.cleaned_data["patient_name_override"],
                 )
             except ValueError as e:
                 form.add_error(None, str(e))
@@ -250,6 +252,7 @@ def edit_prescription(request, patient_id, pk):
     else:
         form = PrescriptionForm(clinic=clinic, initial={
             "doctor": prescription.doctor_id, "notes": prescription.notes,
+            "patient_name_override": prescription.patient_name_override,
         })
         formset = PrescriptionItemFormSet(initial=[
             {
