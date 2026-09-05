@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
 from appointments.services import AppointmentService
+
 from records.services import (
     PrescriptionService, DoctorNoteService, ProcedureReportService, LabworkDemandService,
 )
@@ -12,6 +13,9 @@ from records.forms import (
     ProcedureReportForm, ProcedureItemFormSet,
     LabworkDemandForm, LabworkItemFormSet,
 )
+
+from records.models import Prescription, DoctorNote, ProcedureReport, LabworkDemand
+
 from .forms import PatientForm
 from .services import PatientService
 from .models import Patient
@@ -205,6 +209,58 @@ def add_prescription(request, patient_id):
     context = {"form": form, "formset": formset, "patient": patient}
     return render(request, "records/prescription_add.html", context)
 
+@login_required
+def edit_prescription(request, patient_id, pk):
+    clinic = _require_clinic(request)
+    patient = _get_patient_or_404(clinic, patient_id)
+    prescription = get_object_or_404(
+        Prescription.objects.for_clinic(clinic).filter(patient=patient).prefetch_related("items"), pk=pk #type:ignore
+    )
+
+    if request.method == "POST":
+        form = PrescriptionForm(request.POST, clinic=clinic)
+        formset = PrescriptionItemFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            items = [
+                {
+                    "medication_name": f.cleaned_data["medication_name"],
+                    "dosage": f.cleaned_data["dosage"],
+                    "frequency": f.cleaned_data["frequency"],
+                    "duration": f.cleaned_data["duration"],
+                    "instructions": f.cleaned_data["instructions"],
+                }
+                for f in formset
+                if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("medication_name")
+            ]
+
+            try:
+                PrescriptionService.update_prescription(
+                    prescription=prescription, doctor=form.cleaned_data["doctor"],
+                    notes=form.cleaned_data["notes"], items=items,
+                )
+            except ValueError as e:
+                form.add_error(None, str(e))
+            else:
+                messages.success(request, "Prescription updated")
+                return redirect("records:prescription_print", pk=prescription.pk)
+
+    else:
+        form = PrescriptionForm(clinic=clinic, initial={
+            "doctor": prescription.doctor_id, "notes": prescription.notes,
+        })
+        formset = PrescriptionItemFormSet(initial=[
+            {
+                "medication_name": item.medication_name, "dosage": item.dosage,
+                "frequency": item.frequency, "duration": item.duration,
+                "instructions": item.instructions,
+            }
+            for item in prescription.items.all()
+        ])
+        formset.extra = max(formset.extra, len(prescription.items.all()) + 1)
+
+    context = {"form": form, "formset": formset, "patient": patient, "prescription": prescription}
+    return render(request, "records/prescription_edit.html", context)
 
 @login_required
 def add_note(request, patient_id):
@@ -228,6 +284,32 @@ def add_note(request, patient_id):
 
     context = {"form": form, "patient": patient}
     return render(request, "records/note_add.html", context)
+
+@login_required
+def edit_note(request, patient_id, pk):
+    clinic = _require_clinic(request)
+    patient = _get_patient_or_404(clinic, patient_id)
+    note = get_object_or_404(DoctorNote.objects.for_clinic(clinic).filter(patient=patient), pk=pk) #type:ignore
+
+    if request.method == "POST":
+        form = DoctorNoteForm(request.POST, clinic=clinic)
+
+        if form.is_valid():
+            try:
+                DoctorNoteService.update_note(
+                    note=note, doctor=form.cleaned_data["doctor"], content=form.cleaned_data["content"],
+                )
+            except ValueError as e:
+                form.add_error(None, str(e))
+            else:
+                messages.success(request, "Note updated")
+                return redirect("records:note_print", pk=note.pk)
+
+    else:
+        form = DoctorNoteForm(clinic=clinic, initial={"doctor": note.doctor_id, "content": note.content})
+
+    context = {"form": form, "patient": patient, "note": note}
+    return render(request, "records/note_edit.html", context)
 
 
 @login_required
