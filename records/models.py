@@ -30,6 +30,12 @@ class Prescription(ClinicOwnedModel):
     patient = models.ForeignKey("patients.Patient", on_delete=models.PROTECT,related_name="prescriptions")
     doctor = models.ForeignKey("clinics.DoctorProfile", on_delete=models.PROTECT, related_name="prescriptions")
 
+    patient_name_override = encrypt(models.CharField(
+        max_length=300, blank=True,
+        help_text="Optional. Overrides the patient's name on this prescription only — "
+                   "does not change the patient's actual record."
+    ))
+
     notes = encrypt(models.TextField(blank=True))
 
     class Meta:
@@ -38,6 +44,10 @@ class Prescription(ClinicOwnedModel):
     def __str__(self) -> str:
         return f"Prescription for {self.patient} — {self.created_at:%Y-%m-%d}"
 
+    @property
+    def display_patient_name(self):
+        """Name to show on the printed document — the override if set, otherwise the patient's actual name."""
+        return self.patient_name_override or str(self.patient)
 
 class PrescriptionItem(models.Model):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name="items")
