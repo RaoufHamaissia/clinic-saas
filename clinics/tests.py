@@ -284,3 +284,56 @@ class StaffViewTests(TestCase):
         self.assertTrue(User.objects.filter(email="newsec@example.com").exists())
 
 
+class ClinicSettingsViewTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Old Name", phone="0555000000")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+
+        self.admin_user = User.objects.create_clinic_admin( #type:ignore
+            email="admin@example.com", password="StrongPassword123!", clinic=self.clinic,
+        )
+        DoctorProfile.objects.create(user=self.admin_user, clinic=self.clinic, specialty=self.specialty)
+
+        self.regular_doctor_user = User.objects.create_doctor( #type:ignore
+            email="regular@example.com", password="StrongPassword123!", clinic=self.clinic,
+        )
+        DoctorProfile.objects.create(user=self.regular_doctor_user, clinic=self.clinic, specialty=self.specialty)
+
+    def test_requires_login(self):
+        response = self.client.get(reverse("clinics:settings"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_non_admin_cannot_access(self):
+        self.client.login(email="regular@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("clinics:settings"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_can_view_settings(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("clinics:settings"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Old Name")
+
+    def test_admin_can_update_clinic_info_and_letterhead(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("clinics:settings"), {
+            "name": "New Clinic Name",
+            "phone": "0555111111",
+            "address": "123 Main St",
+            "document_header": "Confidential Medical Document",
+            "document_footer": "Thank you for choosing our clinic",
+        })
+
+        self.assertRedirects(response, reverse("clinics:settings"))
+
+        self.clinic.refresh_from_db()
+        self.assertEqual(self.clinic.name, "New Clinic Name")
+        self.assertEqual(self.clinic.document_header, "Confidential Medical Document")
+
+    
