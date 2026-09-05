@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import JsonResponse
 
-from .forms import ClinicRegistrationForm, DoctorCreateForm, SecretaryCreateForm
+from .forms import ClinicRegistrationForm, DoctorCreateForm, SecretaryCreateForm, ClinicSettingsForm
 from .services import ClinicService, SpecialtyService, StaffService
 
 # Create your views here.
@@ -147,4 +147,22 @@ def add_secretary(request):
     context = {"form": form}
     return render(request, "clinics/secretary_add.html", context)
 
-    
+
+
+@login_required
+def clinic_settings(request):
+    clinic = _require_clinic_admin(request)
+
+    if request.method == "POST":
+        form = ClinicSettingsForm(request.POST, instance=clinic)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Clinic settings updated")
+            return redirect("clinics:settings")
+
+    else:
+        form = ClinicSettingsForm(instance=clinic)
+
+    context = {"form": form}
+    return render(request, "clinics/settings.html", context)    
