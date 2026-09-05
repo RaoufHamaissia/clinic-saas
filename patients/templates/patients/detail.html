@@ -66,6 +66,11 @@
                                         <td>{{ appt.type }}</td>
                                         <td>{{ appt.doctor }}</td>
                                         <td><span class="badge bg-info text-dark">{{ appt.get_status_display }}</span></td>
+                                        <td>
+                                            {% if appt.status == "scheduled" or appt.status == "arrived" or appt.status == "waiting" or appt.status == "with_doctor" %}
+                                                <a href="{% url 'appointments:edit' appt.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
