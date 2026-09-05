@@ -20,6 +20,13 @@
                         <div class="text-danger small mt-1">{{ error }}</div>
                     {% endfor %}
                 </div>
+                <div class="mb-3">
+                    {{ form.patient_name_override.label_tag }}
+                    {{ form.patient_name_override }}
+                    {% for error in form.patient_name_override.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
 
                 <h5 class="fw-semibold mb-3">Medications</h5>
 
