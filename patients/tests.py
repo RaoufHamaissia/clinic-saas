@@ -152,3 +152,54 @@ class PatientDetailViewTests(TestCase):
         response = self.client.get(reverse("patients:detail", args=[self.other_clinic_patient.pk]))
 
         self.assertEqual(response.status_code, 404)
+
+
+class PatientEditViewTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.other_clinic = Clinic.objects.create(name="Clinic B")
+        self.user = User.objects.create_user( #type:ignore
+            email="staff@example.com", password="StrongPassword123!", clinic=self.clinic
+        )
+        self.patient = Patient.objects.create(clinic=self.clinic, first_name="John", last_name="A")
+
+    def test_edit_requires_login(self):
+        response = self.client.get(reverse("patients:edit", args=[self.patient.pk]))
+        self.assertEqual(response.status_code, 302)
+
+    def test_edit_404_for_other_clinic_patient(self):
+        other_patient = Patient.objects.create(clinic=self.other_clinic, first_name="Jane", last_name="B")
+
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("patients:edit", args=[other_patient.pk]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_edit_form_prefills_current_values(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("patients:edit", args=[self.patient.pk]))
+
+        self.assertContains(response, "John")
+
+    def test_edit_updates_patient(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("patients:edit", args=[self.patient.pk]), {
+            "first_name": "Jonathan",
+            "last_name": "A",
+            "phone": "",
+            "address": "",
+            "reason_for_visit": "Follow-up",
+        })
+
+        self.assertRedirects(response, reverse("patients:detail", args=[self.patient.pk]))
+
+        self.patient.refresh_from_db()
+        self.assertEqual(self.patient.first_name, "Jonathan")
+        self.assertEqual(self.patient.reason_for_visit, "Follow-up")
+
+
+    

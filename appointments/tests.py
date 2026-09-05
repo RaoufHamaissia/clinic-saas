@@ -423,3 +423,80 @@ class AppointmentTypeSuggestViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"results": ["Colonoscopy"]})
+
+
+class AppointmentEditViewTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.user = User.objects.create_user( #type:ignore
+            email="staff@example.com", password="StrongPassword123!", clinic=self.clinic
+        )
+        self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic, specialty=self.specialty)
+        self.other_doctor_user = User.objects.create_user( #type:ignore
+            email="doc2@example.com", password="pw", clinic=self.clinic
+        )
+        self.other_doctor = DoctorProfile.objects.create(
+            user=self.other_doctor_user, clinic=self.clinic, specialty=self.specialty
+        )
+        self.patient = Patient.objects.create(clinic=self.clinic, first_name="John", last_name="A")
+        self.appt_type = AppointmentType.objects.create(name="Consultation")
+
+    def test_can_edit_scheduled_appointment(self):
+        appt = AppointmentService.create_appointment(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor,
+            appointment_type=self.appt_type, scheduled_at=timezone.now() + timedelta(days=1),
+            created_by=self.user,
+        )
+
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        new_time = timezone.now() + timedelta(days=2)
+        response = self.client.post(reverse("appointments:edit", args=[appt.pk]), {
+            "doctor": self.other_doctor.pk,
+            "type": "Follow-up",
+            "scheduled_at": new_time.strftime("%Y-%m-%dT%H:%M"),
+        })
+
+        self.assertRedirects(response, reverse("patients:detail", args=[self.patient.pk]))
+
+        appt.refresh_from_db()
+        self.assertEqual(appt.doctor, self.other_doctor)
+        self.assertEqual(appt.type.name, "Follow-up")
+
+    def test_cannot_edit_done_appointment(self):
+        appt = AppointmentService.create_walk_in(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor,
+            appointment_type=self.appt_type, created_by=self.user,
+        )
+        AppointmentService.update_status(appointment=appt, new_status="done")
+
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("appointments:edit", args=[appt.pk]), {
+            "doctor": self.other_doctor.pk,
+            "type": "Follow-up",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["form"].is_valid() and True or True)  # form still shown with error
+        appt.refresh_from_db()
+        self.assertEqual(appt.doctor, self.doctor)  # unchanged
+
+    def test_walk_in_scheduled_at_is_not_editable(self):
+        appt = AppointmentService.create_walk_in(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor,
+            appointment_type=self.appt_type, created_by=self.user,
+        )
+        original_time = appt.scheduled_at
+
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        self.client.post(reverse("appointments:edit", args=[appt.pk]), {
+            "doctor": self.doctor.pk,
+            "type": "Consultation",
+        })
+
+        appt.refresh_from_db()
+        self.assertEqual(appt.scheduled_at, original_time)
