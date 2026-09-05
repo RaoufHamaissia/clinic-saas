@@ -108,11 +108,13 @@
                             </a>
                         </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            Settings
-                        </a>
-                    </li>
+                    {% if request.user.is_clinic_admin %}
+                        <li class="nav-item">
+                            <a href="{% url "clinics:settings" %}" class="nav-link {% if request.resolver_match.view_name == 'clinics:settings' %}active{% endif %}">
+                                Settings
+                            </a>
+                        </li>
+                    {% endif %}
                 </ul>
             </nav>
          </aside>
