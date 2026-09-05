@@ -1,7 +1,11 @@
 from .models import (Prescription, PrescriptionItem, Medication, DoctorNote, ProcedureItem, ProcedureReport,
                     ProcedureReport, ProcedureItem, LabworkDemand, LabworkItem,
                      )
+from django.utils import timezone
 
+
+def _is_same_day(instance):
+    return instance.created_at.date() == timezone.localdate()
 
 class MedicationService:
     @staticmethod
@@ -73,6 +77,28 @@ class PrescriptionService:
             qs = qs.filter(pk__in=matching_ids)
 
         return qs
+
+    @staticmethod
+    def update_prescription(*, prescription, doctor, notes, items):
+        if not _is_same_day(prescription):
+            raise ValueError("This prescription can only be edited on the day it was created.")
+
+        if doctor.clinic_id != prescription.clinic_id:
+            raise ValueError("Doctor does not belong to this clinic.")
+
+        prescription.doctor = doctor
+        prescription.notes = notes
+        prescription.save()
+
+        prescription.items.all().delete()
+        PrescriptionItem.objects.bulk_create([
+            PrescriptionItem(prescription=prescription, **item) for item in items
+        ])
+
+        for item in items:
+            MedicationService.register(item["medication_name"])
+
+        return prescription
 
     
 
@@ -194,3 +220,5 @@ class LabworkDemandService:
             qs = qs.filter(pk__in=matching_ids)
 
         return qs
+
+
