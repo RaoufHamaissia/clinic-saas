@@ -38,7 +38,7 @@ class MedicationService:
 class PrescriptionService:
 
     @staticmethod
-    def create_prescription(*, clinic, patient, doctor, notes="", items):
+    def create_prescription(*, clinic, patient, doctor, notes="", items, patient_name_override=""):
         if patient.clinic_id != clinic.id:
             raise ValueError("Patient does not belong to this clinic.")
 
@@ -46,7 +46,8 @@ class PrescriptionService:
             raise ValueError("Doctor does not belong to this clinic.")
 
         prescription = Prescription.objects.create(
-            clinic=clinic, patient=patient, doctor=doctor, notes=notes
+            clinic=clinic, patient=patient, doctor=doctor, notes=notes,
+            patient_name_override=patient_name_override,
         )
 
         PrescriptionItem.objects.bulk_create([
@@ -79,7 +80,7 @@ class PrescriptionService:
         return qs
 
     @staticmethod
-    def update_prescription(*, prescription, doctor, notes, items):
+    def update_prescription(*, prescription, doctor, notes, items, patient_name_override=""):
         if not _is_same_day(prescription):
             raise ValueError("This prescription can only be edited on the day it was created.")
 
@@ -88,6 +89,7 @@ class PrescriptionService:
 
         prescription.doctor = doctor
         prescription.notes = notes
+        prescription.patient_name_override = patient_name_override
         prescription.save()
 
         prescription.items.all().delete()
