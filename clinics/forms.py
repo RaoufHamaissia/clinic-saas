@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Specialty
+from .models import Specialty, Clinic
 from accounts.models import User
 
 from django.contrib.auth.password_validation import validate_password
@@ -244,3 +244,22 @@ class SecretaryCreateForm(forms.Form):
                 self.add_error("password", error)
 
         return cleaned_data
+
+
+class ClinicSettingsForm(forms.ModelForm):
+    class Meta:
+        model = Clinic
+        fields = ["name", "phone", "address", "document_header", "document_footer"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "phone": forms.TextInput(attrs={"class": "form-control"}),
+            "address": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "document_header": forms.Textarea(attrs={
+                "class": "form-control", "rows": 2,
+                "placeholder": "Optional text shown at the top of every printed document"
+            }),
+            "document_footer": forms.Textarea(attrs={
+                "class": "form-control", "rows": 2,
+                "placeholder": "Optional text shown at the bottom of every printed document"
+            }),
+        }
