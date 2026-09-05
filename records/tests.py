@@ -1,5 +1,6 @@
 import io
 from PIL import Image
+from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -699,3 +700,126 @@ class EncryptionAtRestTests(TestCase):
             raw_value = cursor.fetchone()[0]
 
         self.assertEqual(raw_value, "Plaintext")
+
+
+
+class PrescriptionEditTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.user = User.objects.create_user(email="doc@example.com", password="StrongPassword123!", clinic=self.clinic) #type:ignore
+        self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic, specialty=self.specialty)
+        self.patient = Patient.objects.create(clinic=self.clinic, first_name="John", last_name="A")
+
+    def test_can_edit_same_day_prescription(self):
+        prescription = PrescriptionService.create_prescription(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor,
+            items=[{"medication_name": "Amoxicillin", "dosage": "", "frequency": "", "duration": "", "instructions": ""}],
+        )
+
+        self.client.login(email="doc@example.com", password="StrongPassword123!")
+
+        data = {
+            "doctor": self.doctor.pk, "notes": "Updated notes",
+            "form-TOTAL_FORMS": "3", "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0", "form-MAX_NUM_FORMS": "1000",
+            "form-0-medication_name": "Ibuprofen", "form-0-dosage": "", "form-0-frequency": "",
+            "form-0-duration": "", "form-0-instructions": "",
+            "form-1-medication_name": "", "form-1-dosage": "", "form-1-frequency": "",
+            "form-1-duration": "", "form-1-instructions": "",
+            "form-2-medication_name": "", "form-2-dosage": "", "form-2-frequency": "",
+            "form-2-duration": "", "form-2-instructions": "",
+        }
+
+        response = self.client.post(
+            reverse("patients:edit_prescription", args=[self.patient.pk, prescription.pk]), data
+        )
+
+        self.assertRedirects(response, reverse("records:prescription_print", args=[prescription.pk]))
+
+        prescription.refresh_from_db()
+        self.assertEqual(prescription.notes, "Updated notes")
+        self.assertEqual(prescription.items.count(), 1) #type:ignore
+        self.assertEqual(prescription.items.first().medication_name, "Ibuprofen") #type:ignore
+
+    def test_cannot_edit_prescription_from_a_previous_day(self):
+        prescription = PrescriptionService.create_prescription(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor, items=[]
+        )
+        # Simulate it having been created yesterday
+        from django.utils import timezone
+        from datetime import timedelta
+        Prescription.objects.filter(pk=prescription.pk).update(
+            created_at=timezone.now() - timedelta(days=1)
+        )
+        prescription.refresh_from_db()
+
+        self.client.login(email="doc@example.com", password="StrongPassword123!")
+
+        data = {
+            "doctor": self.doctor.pk, "notes": "Trying to edit",
+            "form-TOTAL_FORMS": "1", "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0", "form-MAX_NUM_FORMS": "1000",
+            "form-0-medication_name": "", "form-0-dosage": "", "form-0-frequency": "",
+            "form-0-duration": "", "form-0-instructions": "",
+        }
+
+        response = self.client.post(
+            reverse("patients:edit_prescription", args=[self.patient.pk, prescription.pk]), data
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("can only be edited on the day", str(response.context["form"].errors))
+
+        prescription.refresh_from_db()
+        self.assertNotEqual(prescription.notes, "Trying to edit")
+
+
+class NoteEditTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.user = User.objects.create_user(email="doc@example.com", password="StrongPassword123!", clinic=self.clinic) #type:ignore
+        self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic, specialty=self.specialty)
+        self.patient = Patient.objects.create(clinic=self.clinic, first_name="John", last_name="A")
+
+    def test_can_edit_same_day_note(self):
+        note = DoctorNoteService.create_note(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor, content="Original content"
+        )
+
+        self.client.login(email="doc@example.com", password="StrongPassword123!")
+
+        response = self.client.post(
+            reverse("patients:edit_note", args=[self.patient.pk, note.pk]),
+            {"doctor": self.doctor.pk, "content": "Corrected content"},
+        )
+
+        self.assertRedirects(response, reverse("records:note_print", args=[note.pk]))
+
+        note.refresh_from_db()
+        self.assertEqual(note.content, "Corrected content")
+
+    def test_cannot_edit_note_from_a_previous_day(self):
+        from django.utils import timezone
+        from datetime import timedelta
+
+        note = DoctorNoteService.create_note(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor, content="Original content"
+        )
+        DoctorNote.objects.filter(pk=note.pk).update(created_at=timezone.now() - timedelta(days=1))
+        note.refresh_from_db()
+
+        self.client.login(email="doc@example.com", password="StrongPassword123!")
+
+        response = self.client.post(
+            reverse("patients:edit_note", args=[self.patient.pk, note.pk]),
+            {"doctor": self.doctor.pk, "content": "Trying to edit"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        note.refresh_from_db()
+        self.assertEqual(note.content, "Original content")
