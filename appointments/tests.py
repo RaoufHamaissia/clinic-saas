@@ -467,8 +467,8 @@ class AppointmentEditViewTests(TestCase):
 
     def test_cannot_edit_done_appointment(self):
         appt = AppointmentService.create_walk_in(
-            clinic=self.clinic, patient=self.patient, doctor=self.doctor,
-            appointment_type=self.appt_type, created_by=self.user,
+        clinic=self.clinic, patient=self.patient, doctor=self.doctor,
+        appointment_type=self.appt_type, created_by=self.user,
         )
         AppointmentService.update_status(appointment=appt, new_status="done")
 
@@ -480,9 +480,10 @@ class AppointmentEditViewTests(TestCase):
         })
 
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(response.context["form"].is_valid() and True or True)  # form still shown with error
+        self.assertIn("already been completed", str(response.context["form"].errors))
+
         appt.refresh_from_db()
-        self.assertEqual(appt.doctor, self.doctor)  # unchanged
+        self.assertEqual(appt.doctor, self.doctor) 
 
     def test_walk_in_scheduled_at_is_not_editable(self):
         appt = AppointmentService.create_walk_in(
