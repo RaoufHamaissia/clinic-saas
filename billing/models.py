@@ -136,3 +136,30 @@ class PlanChangeRequest(models.Model):
 
     def __str__(self):
         return f"{self.clinic} → {self.get_requested_plan_display()} ({self.get_status_display()})" #type:ignore
+
+
+class PaymentInstructions(models.Model):
+    """
+    Single platform-wide row of bank/CCP details shown to clinic-admins on
+    the plan-change request form. Editable through Django admin — no code
+    change needed to update account numbers. Enforced as a singleton via
+    admin permission overrides (see billing/admin.py), not a DB constraint,
+    since Django has no clean built-in way to enforce "exactly one row."
+    """
+    bank_name = models.CharField(max_length=200, blank=True)
+    bank_rib = models.CharField(max_length=100, blank=True, verbose_name="Bank RIB")
+    ccp_number = models.CharField(max_length=100, blank=True, verbose_name="CCP number")
+    ccp_key = models.CharField(max_length=20, blank=True, verbose_name="CCP key")
+    additional_notes = models.TextField(
+        blank=True,
+        help_text="Any extra instructions shown to clinic-admins (e.g. 'include your clinic name in the transfer reference')."
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Payment instructions"
+        verbose_name_plural = "Payment instructions"
+
+    def __str__(self):
+        return "Payment instructions (bank / CCP)"
