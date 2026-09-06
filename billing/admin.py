@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Subscription, VisitRecord, Invoice, PlanChangeRequest
+from .models import Subscription, VisitRecord, Invoice, PlanChangeRequest, PaymentInstructions
 from .services import PlanRequestService
 # Register your models here.
 
@@ -57,3 +57,17 @@ class PlanChangeRequestAdmin(admin.ModelAdmin):
             PlanRequestService.reject(request_obj=req, reviewed_by=request.user, reason="Rejected via admin bulk action")
             count += 1
         self.message_user(request, f"Rejected {count} request(s).")
+
+
+@admin.register(PaymentInstructions)
+class PaymentInstructionsAdmin(admin.ModelAdmin):
+    fields = ("bank_name", "bank_rib", "ccp_number", "ccp_key", "additional_notes", "updated_at")
+    readonly_fields = ("updated_at",)
+
+    def has_add_permission(self, request):
+        # Enforce singleton: only allow "Add" if no row exists yet
+        # (should never happen after the initial migration, but harmless if it does)
+        return not PaymentInstructions.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
