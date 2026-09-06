@@ -7,7 +7,7 @@ from .constants import (
     STANDARD_MONTHLY_PRICE, STANDARD_DOCTOR_LIMIT, STANDARD_SECRETARY_LIMIT,
     PAY_PER_VISIT_PRICE,
 )
-from .models import Subscription, VisitRecord, Invoice
+from .models import Subscription, VisitRecord, Invoice, PlanChangeRequest
 
 
 class SubscriptionService:
@@ -152,3 +152,47 @@ class InvoiceService:
     @staticmethod
     def get_for_clinic(clinic):
         return Invoice.objects.filter(clinic=clinic)
+
+
+class PlanRequestService:
+
+    @staticmethod
+    def create_request(*, clinic, requested_by, requested_plan, payment_method, proof_file, reference_note=""):
+        return PlanChangeRequest.objects.create(
+            clinic=clinic,
+            requested_by=requested_by,
+            requested_plan=requested_plan,
+            payment_method=payment_method,
+            proof_file=proof_file,
+            reference_note=reference_note,
+        )
+
+    @staticmethod
+    def get_for_clinic(clinic):
+        return PlanChangeRequest.objects.filter(clinic=clinic)
+
+    @staticmethod
+    def approve(*, request_obj, reviewed_by):
+        sub, _ = Subscription.objects.get_or_create(clinic=request_obj.clinic)
+
+        sub.plan = request_obj.requested_plan
+        sub.status = Subscription.Status.ACTIVE
+        sub.trial_ends_at = None
+        sub.save()
+
+        request_obj.status = PlanChangeRequest.Status.APPROVED
+        request_obj.reviewed_by = reviewed_by
+        request_obj.reviewed_at = timezone.now()
+        request_obj.save()
+
+        return request_obj
+
+    @staticmethod
+    def reject(*, request_obj, reviewed_by, reason=""):
+        request_obj.status = PlanChangeRequest.Status.REJECTED
+        request_obj.reviewed_by = reviewed_by
+        request_obj.rejection_reason = reason
+        request_obj.reviewed_at = timezone.now()
+        request_obj.save()
+
+        return request_obj

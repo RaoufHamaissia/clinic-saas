@@ -92,7 +92,7 @@ class Invoice(models.Model):
         return f"Invoice {self.pk} — {self.clinic} — {self.amount_due} DA ({self.get_status_display()})" #type:ignore
 
 
-class PlanChangerRequest(models.Model):
+class PlanChangeRequest(models.Model):
     class PaymentMethod(models.TextChoices):
         BANK_TRANSFER = "bank_transfer", "Bank transfer"
         CCP = "ccp", "CCP (Algérie Poste)"
