@@ -153,10 +153,12 @@ class PlanChangeRequest(models.Model):
 class PaymentInstructions(models.Model):
     """
     Single platform-wide row of bank/CCP details shown to clinic-admins on
-    the plan-change request form. Editable through Django admin — no code
-    change needed to update account numbers. Enforced as a singleton via
-    admin permission overrides (see billing/admin.py), not a DB constraint,
-    since Django has no clean built-in way to enforce "exactly one row."
+    the plan-change request form. Enforced as a true singleton via a fixed
+    primary key (pk=1) — save() always forces pk=1, and load() uses
+    get_or_create(pk=1) so the row creates itself automatically the first
+    time it's needed, regardless of migration history. This avoids relying
+    on a data migration to seed it, since automatic `makemigrations` has no
+    way to know to include a seeding step.
     """
     bank_name = models.CharField(max_length=200, blank=True)
     bank_rib = models.CharField(max_length=100, blank=True, verbose_name="Bank RIB")
@@ -176,4 +178,14 @@ class PaymentInstructions(models.Model):
     def __str__(self):
         return "Payment instructions (bank / CCP)"
 
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        pass  # singleton — never actually deletable
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

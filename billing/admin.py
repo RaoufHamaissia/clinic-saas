@@ -65,9 +65,12 @@ class PaymentInstructionsAdmin(admin.ModelAdmin):
     readonly_fields = ("updated_at",)
 
     def has_add_permission(self, request):
-        # Enforce singleton: only allow "Add" if no row exists yet
-        # (should never happen after the initial migration, but harmless if it does)
-        return not PaymentInstructions.objects.exists()
+        return False  # never manually "add" — the singleton creates itself
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def changelist_view(self, request, extra_context=None):
+        # Skip the changelist entirely — ensure the row exists, then go straight to editing it.
+        instance = PaymentInstructions.load()
+        return redirect(reverse("admin:billing_paymentinstructions_change", args=[instance.pk])) #type:ignore

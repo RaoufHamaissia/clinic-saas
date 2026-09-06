@@ -16,10 +16,13 @@ from patients.services import PatientService
 from appointments.models import AppointmentType
 from appointments.services import AppointmentService
 
-from .models import Subscription, VisitRecord, Invoice, PlanChangeRequest
-from .services import SubscriptionService, BillingService, InvoiceService, PlanRequestService
+from .models import Subscription, VisitRecord, Invoice, PlanChangeRequest, PaymentInstructions
+from .services import PaymentInstructionsService, SubscriptionService, BillingService, InvoiceService, PlanRequestService
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+
+from django.core.exceptions import ValidationError as DjangoValidationError
+
 
 
 
@@ -390,3 +393,116 @@ class PlanChangeRequestTests(TestCase):
 
         sub = SubscriptionService.get_subscription(self.clinic)
         self.assertEqual(sub.plan, Subscription.Plan.TRIAL)  # unchanged #type:ignore
+
+
+
+class PaymentInstructionsTests(TestCase):
+
+    def test_load_creates_singleton_on_first_access(self):
+        self.assertEqual(PaymentInstructions.objects.count(), 0)
+
+        instance = PaymentInstructions.load()
+
+        self.assertEqual(instance.pk, 1)
+        self.assertEqual(PaymentInstructions.objects.count(), 1)
+
+    def test_load_returns_same_instance_on_repeated_calls(self):
+        first = PaymentInstructions.load()
+        first.bank_name = "Banque Test"
+        first.save()
+
+        second = PaymentInstructions.load()
+
+        self.assertEqual(second.pk, first.pk)
+        self.assertEqual(second.bank_name, "Banque Test")
+        self.assertEqual(PaymentInstructions.objects.count(), 1)
+
+    def test_get_returns_the_instance(self):
+        instance = PaymentInstructions.load()
+        instance.bank_name = "Banque Test"
+        instance.save()
+
+        result = PaymentInstructionsService.get()
+        self.assertEqual(result.bank_name, "Banque Test")
+
+    def test_request_form_shows_configured_instructions(self):
+        specialty = Specialty.objects.create(name="General Medicine")
+        clinic, doctor = ClinicService.create_clinic(
+            clinic_name="Test Clinic", doctor_email="admin@example.com", password="StrongPassword123!",
+            first_name="J", last_name="D", specialty=specialty,
+        )
+
+        instructions = PaymentInstructions.load()
+        instructions.bank_name = "Banque Test"
+        instructions.bank_rib = "1234567890"
+        instructions.save()
+
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+        response = self.client.get(reverse("billing:request_plan_change"))
+
+        self.assertContains(response, "Banque Test")
+        self.assertContains(response, "1234567890")
+
+    def test_request_form_shows_not_configured_warning_when_defaults(self):
+        specialty = Specialty.objects.create(name="General Medicine")
+        clinic, doctor = ClinicService.create_clinic(
+            clinic_name="Test Clinic", doctor_email="admin2@example.com", password="StrongPassword123!",
+            first_name="J", last_name="D", specialty=specialty,
+        )
+
+        self.client.login(email="admin2@example.com", password="StrongPassword123!")
+        response = self.client.get(reverse("billing:request_plan_change"))
+
+        # Instructions row exists (auto-created) but every field is blank
+        self.assertEqual(response.status_code, 200)
+
+class PlanChangeRequestFileValidationTests(TestCase):
+
+    def setUp(self):
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.clinic, self.doctor = ClinicService.create_clinic(
+            clinic_name="Test Clinic", doctor_email="admin@example.com", password="StrongPassword123!",
+            first_name="J", last_name="D", specialty=self.specialty,
+        )
+
+    def test_rejects_disallowed_file_extension(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        bad_file = SimpleUploadedFile("proof.exe", b"fake exe content", content_type="application/octet-stream")
+
+        response = self.client.post(reverse("billing:request_plan_change"), {
+            "requested_plan": "standard",
+            "payment_method": "ccp",
+            "proof_file": bad_file,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["form"].is_valid())
+
+    def test_rejects_oversized_file(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        oversized_content = b"x" * (6 * 1024 * 1024)  # 6MB — over the 5MB limit
+        big_file = SimpleUploadedFile("proof.pdf", oversized_content, content_type="application/pdf")
+
+        response = self.client.post(reverse("billing:request_plan_change"), {
+            "requested_plan": "standard",
+            "payment_method": "ccp",
+            "proof_file": big_file,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["form"].is_valid())
+
+    def test_accepts_valid_pdf_under_size_limit(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        small_file = SimpleUploadedFile("proof.pdf", b"%PDF-1.4 small valid content", content_type="application/pdf")
+
+        response = self.client.post(reverse("billing:request_plan_change"), {
+            "requested_plan": "standard",
+            "payment_method": "ccp",
+            "proof_file": small_file,
+        })
+
+        self.assertRedirects(response, reverse("billing:status"))

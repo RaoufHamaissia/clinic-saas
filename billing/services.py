@@ -203,4 +203,4 @@ class PaymentInstructionsService:
     @staticmethod
     def get():
         from .models import PaymentInstructions
-        return PaymentInstructions.objects.first()
+        return PaymentInstructions.load()
