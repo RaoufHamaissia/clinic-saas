@@ -5,10 +5,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 from .chargily import ChargilyService
 from .models import Invoice
-from .services import SubscriptionService, InvoiceService
+
+from .services import SubscriptionService, InvoiceService, PlanRequestService
+from .forms import PlanChangeRequestForm
 
 
 # Create your views here.
@@ -29,11 +32,13 @@ def subscription_status(request):
     subscription = SubscriptionService.get_subscription(clinic)
     invoices = InvoiceService.get_for_clinic(clinic)
     trial_expired = SubscriptionService.is_trial_expired(clinic)
+    plan_requests = PlanRequestService.get_for_clinic(clinic)
 
     context = {
         "subscription": subscription,
         "invoices": invoices,
         "trial_expired": trial_expired,
+        "plan_requests": plan_requests,
     }
     return render(request, "billing/subscription.html", context)
 
@@ -75,3 +80,33 @@ def chargily_webhook(request):
     ChargilyService.handle_webhook_event(event)
 
     return HttpResponse(status=200)
+
+
+@login_required
+def request_plan_change(request):
+    clinic = _require_clinic_admin(request)
+
+    if request.method == "POST":
+        form = PlanChangeRequestForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            PlanRequestService.create_request(
+                clinic=clinic,
+                requested_by=request.user,
+                requested_plan=form.cleaned_data["requested_plan"],
+                payment_method=form.cleaned_data["payment_method"],
+                proof_file=form.cleaned_data["proof_file"],
+                reference_note=form.cleaned_data["reference_note"],
+            )
+
+            messages.success(
+                request,
+                "Your request has been submitted. We'll review your proof of payment and activate your plan shortly."
+            )
+            return redirect("billing:status")
+
+    else:
+        form = PlanChangeRequestForm()
+
+    context = {"form": form}
+    return render(request, "billing/request_plan_change.html", context)
