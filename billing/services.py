@@ -198,9 +198,9 @@ class PlanRequestService:
         return request_obj
 
 
-    class PaymentInstructionsService:
+class PaymentInstructionsService:
 
-        @staticmethod
-        def get():
-            from .models import PaymentInstructions
-            return PaymentInstructions.objects.first()
+    @staticmethod
+    def get():
+        from .models import PaymentInstructions
+        return PaymentInstructions.objects.first()

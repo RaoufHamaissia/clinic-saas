@@ -10,7 +10,7 @@ from django.contrib import messages
 from .chargily import ChargilyService
 from .models import Invoice
 
-from .services import SubscriptionService, InvoiceService, PlanRequestService
+from .services import SubscriptionService, InvoiceService, PlanRequestService, PaymentInstructionsService
 from .forms import PlanChangeRequestForm
 
 
@@ -108,5 +108,8 @@ def request_plan_change(request):
     else:
         form = PlanChangeRequestForm()
 
-    context = {"form": form}
+    context = {
+        "form": form,
+        "payment_instructions": PaymentInstructionsService.get(),
+    }
     return render(request, "billing/request_plan_change.html", context)
