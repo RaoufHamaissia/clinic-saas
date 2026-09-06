@@ -1,6 +1,14 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
 # Create your models here.
+
+def validate_proof_file_size(file):
+    max_size_mb = 5
+    if file.size > max_size_mb * 1024 * 1024:
+        raise ValidationError(f"File is too large. Maximum size is {max_size_mb}MB.")
+
 
 class Subscription(models.Model):
     class Plan(models.TextChoices):
@@ -104,17 +112,23 @@ class PlanChangeRequest(models.Model):
 
     clinic = models.ForeignKey("clinics.Clinic", on_delete=models.CASCADE, related_name="plan_change_requests")
     requested_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        null=True, related_name="plan_change_requests"
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="plan_change_requests"
     )
 
     requested_plan = models.CharField(
         max_length=20,
-        choices= [c for c in Subscription.Plan.choices if c[0] != Subscription.Plan.TRIAL]
+        choices=[c for c in Subscription.Plan.choices if c[0] != Subscription.Plan.TRIAL],
     )
     payment_method = models.CharField(max_length=20, choices=PaymentMethod.choices)
 
-    proof_file = models.FileField(upload_to="billing/payment_proofs/%Y/%m/")
+    proof_file = models.FileField(
+        upload_to="billing/payment_proofs/%Y/%m/",
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf", "jpg", "jpeg", "png"]),
+            validate_proof_file_size,
+        ],
+        help_text="PDF or image (JPG/PNG), max 5MB.",
+    )
     reference_note = models.CharField(
         max_length=255, blank=True,
         help_text="Optional — transfer reference number, sender name, or other note to help matching."
@@ -125,7 +139,6 @@ class PlanChangeRequest(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="reviewed_plan_change_requests"
     )
-
     rejection_reason = models.CharField(max_length=255, blank=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
@@ -136,7 +149,6 @@ class PlanChangeRequest(models.Model):
 
     def __str__(self):
         return f"{self.clinic} → {self.get_requested_plan_display()} ({self.get_status_display()})" #type:ignore
-
 
 class PaymentInstructions(models.Model):
     """
@@ -163,3 +175,5 @@ class PaymentInstructions(models.Model):
 
     def __str__(self):
         return "Payment instructions (bank / CCP)"
+
+
