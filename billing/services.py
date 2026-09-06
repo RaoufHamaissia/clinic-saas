@@ -196,3 +196,11 @@ class PlanRequestService:
         request_obj.save()
 
         return request_obj
+
+
+    class PaymentInstructionsService:
+
+        @staticmethod
+        def get():
+            from .models import PaymentInstructions
+            return PaymentInstructions.objects.first()
