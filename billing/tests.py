@@ -4,6 +4,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import User
@@ -15,8 +16,11 @@ from patients.services import PatientService
 from appointments.models import AppointmentType
 from appointments.services import AppointmentService
 
-from .models import Subscription, VisitRecord, Invoice
-from .services import SubscriptionService, BillingService, InvoiceService
+from .models import Subscription, VisitRecord, Invoice, PlanChangeRequest
+from .services import SubscriptionService, BillingService, InvoiceService, PlanRequestService
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 
 
 class SubscriptionServiceTests(TestCase):
@@ -298,3 +302,91 @@ class ChargilyWebhookTests(TestCase):
         self.invoice.refresh_from_db()
         self.assertEqual(self.invoice.status, Invoice.Status.PAID)
         self.assertIsNotNone(self.invoice.paid_at)
+
+
+
+class PlanChangeRequestTests(TestCase):
+
+    def setUp(self):
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.clinic, self.doctor = ClinicService.create_clinic(
+            clinic_name="Test Clinic", doctor_email="admin@example.com", password="StrongPassword123!",
+            first_name="J", last_name="D", specialty=self.specialty,
+        )
+
+    def _fake_proof(self):
+        return SimpleUploadedFile("proof.pdf", b"%PDF-1.4 fake proof content", content_type="application/pdf")
+
+    def test_clinic_admin_can_submit_request(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("billing:request_plan_change"), {
+            "requested_plan": "standard",
+            "payment_method": "ccp",
+            "proof_file": self._fake_proof(),
+            "reference_note": "REF123",
+        })
+
+        self.assertRedirects(response, reverse("billing:status"))
+
+        req = PlanChangeRequest.objects.get(clinic=self.clinic)
+        self.assertEqual(req.status, PlanChangeRequest.Status.PENDING)
+        self.assertEqual(req.requested_plan, "standard")
+        self.assertTrue(req.proof_file)
+
+    def test_non_admin_cannot_submit_request(self):
+        from accounts.models import User
+        from clinics.profiles import DoctorProfile
+
+        regular_user = User.objects.create_doctor( #type:ignore
+            email="regular@example.com", password="StrongPassword123!", clinic=self.clinic,
+        )
+        DoctorProfile.objects.create(user=regular_user, clinic=self.clinic, specialty=self.specialty)
+
+        self.client.login(email="regular@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("billing:request_plan_change"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_approve_request_activates_plan(self):
+        req = PlanRequestService.create_request(
+            clinic=self.clinic, requested_by=self.doctor.user,
+            requested_plan="standard", payment_method="bank_transfer",
+            proof_file=self._fake_proof(),
+        )
+
+        superuser_email = "super@platform.com"
+        from accounts.models import User
+        superuser = User.objects.create_superuser(email=superuser_email, password="pw") #type:ignore
+
+        PlanRequestService.approve(request_obj=req, reviewed_by=superuser)
+
+        req.refresh_from_db()
+        self.assertEqual(req.status, PlanChangeRequest.Status.APPROVED)
+        self.assertEqual(req.reviewed_by, superuser)
+        self.assertIsNotNone(req.reviewed_at)
+
+        sub = SubscriptionService.get_subscription(self.clinic)
+        self.assertEqual(sub.plan, Subscription.Plan.STANDARD) #type:ignore
+        self.assertEqual(sub.status, Subscription.Status.ACTIVE) #type:ignore
+        self.assertIsNone(sub.trial_ends_at) #type:ignore
+
+    def test_reject_request_does_not_change_plan(self):
+        req = PlanRequestService.create_request(
+            clinic=self.clinic, requested_by=self.doctor.user,
+            requested_plan="pay_per_visit", payment_method="ccp",
+            proof_file=self._fake_proof(),
+        )
+
+        from accounts.models import User
+        superuser = User.objects.create_superuser(email="super@platform.com", password="pw") #type:ignore
+
+        PlanRequestService.reject(request_obj=req, reviewed_by=superuser, reason="Proof unreadable")
+
+        req.refresh_from_db()
+        self.assertEqual(req.status, PlanChangeRequest.Status.REJECTED)
+        self.assertEqual(req.rejection_reason, "Proof unreadable")
+
+        sub = SubscriptionService.get_subscription(self.clinic)
+        self.assertEqual(sub.plan, Subscription.Plan.TRIAL)  # unchanged #type:ignore
