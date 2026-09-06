@@ -11,12 +11,24 @@
                 proof of payment here. We'll review it and activate your new plan — usually within one business day.
             </p>
 
-            <div class="alert alert-info">
-                <strong>Bank / CCP details:</strong><br>
-                <!-- TODO: replace with actual account details -->
-                Bank: [Bank name] — RIB: [xxxxxxxxxxxxxxxxxxxx]<br>
-                CCP: [xxxxxxxxxxxx] — Key: [xx]
-            </div>
+            {% if payment_instructions %}
+                <div class="alert alert-info">
+                    <strong>Bank / CCP details:</strong><br>
+                    {% if payment_instructions.bank_name or payment_instructions.bank_rib %}
+                        Bank: {{ payment_instructions.bank_name }} — RIB: {{ payment_instructions.bank_rib }}<br>
+                    {% endif %}
+                    {% if payment_instructions.ccp_number %}
+                        CCP: {{ payment_instructions.ccp_number }} — Key: {{ payment_instructions.ccp_key }}<br>
+                    {% endif %}
+                    {% if payment_instructions.additional_notes %}
+                        <div class="mt-2">{{ payment_instructions.additional_notes|linebreaksbr }}</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    Payment instructions haven't been configured yet. Please contact support before submitting a proof of payment.
+                </div>
+            {% endif %}
 
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
