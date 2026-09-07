@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCore — Clinic Management, Simplified</title>
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+    <style>
+        body { background-color: #f8f9fa; }
+        .hero { background: linear-gradient(135deg, #0d6efd, #0a58ca); color: white; }
+        .feature-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            background-color: #e7f1ff; display: flex; align-items: center;
+            justify-content: center; font-size: 24px; margin-bottom: 12px;
+        }
+        .pricing-card { border: 2px solid transparent; transition: border-color 0.2s; }
+        .pricing-card:hover { border-color: #0d6efd; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand bg-white shadow-sm px-4">
+        <span class="navbar-brand fw-bold">MediCore</span>
+        <div class="ms-auto d-flex gap-2">
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">Sign in</a>
+            <a href="{% url 'clinics:register' %}" class="btn btn-primary">Start free trial</a>
+        </div>
+    </nav>
+
+    <div class="hero py-5">
+        <div class="container py-5 text-center">
+            <h1 class="display-4 fw-bold mb-3">Run your clinic, not your paperwork</h1>
+            <p class="lead mb-4">
+                Patients, appointments, prescriptions, and medical records — all in one place,
+                built for clinics in Algeria.
+            </p>
+            <a href="{% url 'clinics:register' %}" class="btn btn-light btn-lg px-4">
+                Start your 14-day free trial
+            </a>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="feature-icon mx-auto">📋</div>
+                <h5 class="fw-bold">Patient records</h5>
+                <p class="text-muted">
+                    Full patient history — appointments, prescriptions, notes, procedures,
+                    and labwork — searchable in one place.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-icon mx-auto">🗓️</div>
+                <h5 class="fw-bold">Appointment scheduling</h5>
+                <p class="text-muted">
+                    Book ahead or handle walk-ins on the spot. Track status from arrival
+                    to checkout.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-icon mx-auto">🖨️</div>
+                <h5 class="fw-bold">Instant documents</h5>
+                <p class="text-muted">
+                    Prescriptions, reports, and lab requests — printed with your clinic's
+                    letterhead, generated on the spot.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white py-5">
+        <div class="container">
+            <h2 class="text-center fw-bold mb-5">Simple, transparent pricing</h2>
+
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4">
+                    <div class="card pricing-card h-100">
+                        <div class="card-body p-4 text-center">
+                            <h5 class="fw-bold">Trial</h5>
+                            <p class="display-6 fw-bold my-3">Free</p>
+                            <p class="text-muted">14 days, up to 50 patients</p>
+                            <a href="{% url 'clinics:register' %}" class="btn btn-outline-primary w-100 mt-3">
+                                Get started
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card pricing-card h-100">
+                        <div class="card-body p-4 text-center">
+                            <h5 class="fw-bold">Standard</h5>
+                            <p class="display-6 fw-bold my-3">10,000 <small class="fs-6 text-muted">DA/month</small></p>
+                            <p class="text-muted">1 doctor + 1 secretary, unlimited patients</p>
+                            <a href="{% url 'clinics:register' %}" class="btn btn-outline-primary w-100 mt-3">
+                                Get started
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card pricing-card h-100">
+                        <div class="card-body p-4 text-center">
+                            <h5 class="fw-bold">Pay per visit</h5>
+                            <p class="display-6 fw-bold my-3">50 <small class="fs-6 text-muted">DA/visit</small></p>
+                            <p class="text-muted">Unlimited staff and patients</p>
+                            <a href="{% url 'clinics:register' %}" class="btn btn-outline-primary w-100 mt-3">
+                                Get started
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-4 text-muted small">
+        &copy; {% now "Y" %} MediCore. All rights reserved.
+    </footer>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+</body>
+</html>
