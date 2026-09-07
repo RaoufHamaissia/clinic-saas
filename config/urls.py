@@ -18,23 +18,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
+from core.views import landing_page
+
 
 
 urlpatterns = [
+    path('', landing_page, name='landing'),
     path('admin/', admin.site.urls),
 
     path("clinic/", include("clinics.urls")),
-
     path("accounts/", include("accounts.urls") ),
-
     path("dashboard/", include("core.urls") ),
-
     path("patients/", include("patients.urls")),
-
     path("appointments/", include("appointments.urls")),
-
     path("records/", include("records.urls")),
-
     path("billing/", include("billing.urls")),
 
     

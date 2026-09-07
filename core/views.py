@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from clinics.profiles import DoctorProfile, SecretaryProfile
@@ -13,6 +13,12 @@ from .services import AuditLogService
 
 
 # Create your views here.
+
+def landing_page(request):
+    if request.user.is_authenticated:
+        return redirect("core:dashboard")
+
+    return render(request, "core/landing.html")
 
 @login_required
 def dashboard(request):
