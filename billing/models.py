@@ -189,3 +189,41 @@ class PaymentInstructions(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class PlanChangeCheckout(models.Model):
+    """
+    Tracks a Chargily checkout created specifically for a self-serve plan
+    switch (as opposed to Invoice, which tracks recurring/usage billing).
+    Kept as its own model rather than overloading Invoice, since the two
+    represent genuinely different things — "payment to switch plans" vs.
+    "amount owed for a billing period" — and conflating them would make
+    every downstream reader of Invoice have to first figure out which kind
+    it's looking at.
+    """
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        COMPLETED = "completed", "Completed"
+        FAILED = "failed", "Failed"
+
+    clinic = models.ForeignKey("clinics.Clinic", on_delete=models.CASCADE, related_name="plan_change_checkouts")
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="plan_change_checkouts"
+    )
+
+    target_plan = models.CharField(max_length=20, choices=Subscription.Plan.choices)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    chargily_checkout_id = models.CharField(max_length=100, blank=True)
+    chargily_checkout_url = models.URLField(blank=True)
+
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.clinic} → {self.get_target_plan_display()} ({self.get_status_display()})" #type:ignore
