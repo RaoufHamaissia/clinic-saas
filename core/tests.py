@@ -40,7 +40,7 @@ class AuditLogServiceTests(TestCase):
         results = AuditLogService.get_all({"action": "login"})
 
         self.assertEqual(results.count(), 1)
-        self.assertEqual(results.first().action, "login")
+        self.assertEqual(results.first().action, "login") #type:ignore
 
 
 class ModelChangeAuditSignalTests(TestCase):
@@ -158,3 +158,30 @@ class PrescriptionPrintAuditTests(TestCase):
 
         entry = AuditLog.objects.filter(action="print", content_type__model="prescription").latest("created_at")
         self.assertEqual(entry.object_id, prescription.pk)
+
+
+class LandingPageTests(TestCase):
+
+    def test_anonymous_user_sees_landing_page(self):
+        response = self.client.get(reverse("landing"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Start your 14-day free trial")
+
+    def test_authenticated_user_redirected_to_dashboard(self):
+        clinic = Clinic.objects.create(name="Clinic A")
+        user = User.objects.create_user( #type:ignore
+            email="staff@example.com", password="StrongPassword123!", clinic=clinic
+        )
+
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("landing"))
+
+        self.assertRedirects(response, reverse("core:dashboard"))
+
+    def test_landing_page_links_to_registration_and_login(self):
+        response = self.client.get(reverse("landing"))
+
+        self.assertContains(response, reverse("clinics:register"))
+        self.assertContains(response, reverse("accounts:login"))
