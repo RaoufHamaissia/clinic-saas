@@ -7,11 +7,12 @@ from django.conf import settings
 class ChargilyService:
 
     @staticmethod
-    def create_checkout(invoice):
+    def _create_checkout_session(*, amount, description):
         """
-        Creates a Chargily Pay checkout session for the given invoice's
-        amount, in sandbox/test mode (settings.CHARGILY_BASE_URL points at
-        pay.chargily.net/test/... until you switch to live credentials).
+        Low-level call to Chargily's checkout endpoint. Returns the raw
+        (checkout_id, checkout_url) pair — callers are responsible for
+        persisting those onto whatever local record they represent
+        (Invoice or PlanChangeCheckout).
         """
         response = requests.post(
             f"{settings.CHARGILY_BASE_URL}checkouts",
@@ -20,26 +21,48 @@ class ChargilyService:
                 "Content-Type": "application/json",
             },
             json={
-                "amount": float(invoice.amount_due),
+                "amount": float(amount),
                 "currency": "dzd",
                 "success_url": settings.CHARGILY_SUCCESS_URL,
                 "failure_url": settings.CHARGILY_FAILURE_URL,
                 "webhook_endpoint": settings.CHARGILY_WEBHOOK_URL,
-                "description": f"MediCore invoice #{invoice.pk} — {invoice.clinic.name}",
+                "description": description,
             },
             timeout=15,
         )
         response.raise_for_status()
         data = response.json()
 
-        invoice.chargily_checkout_id = data["id"]
-        invoice.chargily_checkout_url = data["checkout_url"]
+        return data["id"], data["checkout_url"]
+
+    @staticmethod
+    def create_checkout(invoice):
+        """Creates a Chargily checkout for a recurring/usage Invoice."""
+        checkout_id, checkout_url = ChargilyService._create_checkout_session(
+            amount=invoice.amount_due,
+            description=f"MediCore invoice #{invoice.pk} — {invoice.clinic.name}",
+        )
+
+        invoice.chargily_checkout_id = checkout_id
+        invoice.chargily_checkout_url = checkout_url
         invoice.status = invoice.__class__.Status.ISSUED
         invoice.save(update_fields=["chargily_checkout_id", "chargily_checkout_url", "status"])
 
         return invoice
 
+    @staticmethod
+    def create_plan_change_checkout(checkout):
+        """Creates a Chargily checkout for a self-serve plan switch."""
+        checkout_id, checkout_url = ChargilyService._create_checkout_session(
+            amount=checkout.amount,
+            description=f"MediCore plan switch to {checkout.get_target_plan_display()} — {checkout.clinic.name}",
+        )
 
+        checkout.chargily_checkout_id = checkout_id
+        checkout.chargily_checkout_url = checkout_url
+        checkout.save(update_fields=["chargily_checkout_id", "chargily_checkout_url"])
+
+        return checkout
     @staticmethod
     def verify_webhook_signature(raw_body: bytes, signature_header: str) -> bool:
         """
