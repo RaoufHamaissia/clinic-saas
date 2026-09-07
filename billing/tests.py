@@ -16,12 +16,14 @@ from patients.services import PatientService
 from appointments.models import AppointmentType
 from appointments.services import AppointmentService
 
-from .models import Subscription, VisitRecord, Invoice, PlanChangeRequest, PaymentInstructions
-from .services import PaymentInstructionsService, SubscriptionService, BillingService, InvoiceService, PlanRequestService
+from .models import (Subscription, VisitRecord, Invoice, PlanChangeCheckout,
+                     PlanChangeRequest, PaymentInstructions)
+from .services import (PaymentInstructionsService, SubscriptionService, BillingService,
+                        InvoiceService, PlanRequestService, PlanChangeCheckoutService)
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.exceptions import ValidationError 
 
 
 
@@ -506,3 +508,85 @@ class PlanChangeRequestFileValidationTests(TestCase):
         })
 
         self.assertRedirects(response, reverse("billing:status"))
+
+
+class PlanChangeCheckoutTests(TestCase):
+
+    def setUp(self):
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.clinic, self.doctor = ClinicService.create_clinic(
+            clinic_name="Test Clinic", doctor_email="admin@example.com", password="StrongPassword123!",
+            first_name="J", last_name="D", specialty=self.specialty,
+        )
+
+    def test_switching_to_pay_per_visit_is_immediate_no_payment(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("billing:select_plan"), {"plan": "pay_per_visit"})
+
+        self.assertRedirects(response, reverse("billing:status"))
+
+        sub = SubscriptionService.get_subscription(self.clinic)
+        self.assertEqual(sub.plan, Subscription.Plan.PAY_PER_VISIT) #type:ignore
+        self.assertEqual(sub.status, Subscription.Status.ACTIVE) #type:ignore
+
+        self.assertEqual(PlanChangeCheckout.objects.count(), 0)
+
+    def test_switching_to_standard_creates_pending_checkout(self):
+        with patch("billing.chargily.ChargilyService._create_checkout_session") as mock_session:
+            mock_session.return_value = ("chk_test_abc", "https://pay.chargily.net/test/checkout/chk_test_abc")
+
+            self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+            response = self.client.post(reverse("billing:select_plan"), {"plan": "standard"})
+
+        self.assertRedirects(
+            response, "https://pay.chargily.net/test/checkout/chk_test_abc", fetch_redirect_response=False
+        )
+
+        checkout = PlanChangeCheckout.objects.get(clinic=self.clinic)
+        self.assertEqual(checkout.target_plan, "standard")
+        self.assertEqual(checkout.amount, Decimal("10000.00"))
+        self.assertEqual(checkout.status, PlanChangeCheckout.Status.PENDING)
+
+        # Plan should NOT have switched yet — only the webhook confirms payment
+        sub = SubscriptionService.get_subscription(self.clinic)
+        self.assertEqual(sub.plan, Subscription.Plan.TRIAL) #type:ignore
+
+    def test_webhook_completes_pending_plan_change_checkout(self):
+        checkout = PlanChangeCheckoutService.create_pending(
+            clinic=self.clinic, requested_by=self.doctor.user,
+            target_plan="standard", amount=Decimal("10000.00"),
+        )
+        checkout.chargily_checkout_id = "chk_test_xyz"
+        checkout.save()
+
+        import hmac, hashlib, json
+        from django.conf import settings
+
+        body = json.dumps({"type": "checkout.paid", "data": {"id": "chk_test_xyz"}}).encode()
+        signature = hmac.new(settings.CHARGILY_SECRET.encode(), body, hashlib.sha256).hexdigest()
+
+        response = self.client.post(
+            "/billing/webhook/", data=body, content_type="application/json", HTTP_SIGNATURE=signature,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        checkout.refresh_from_db()
+        self.assertEqual(checkout.status, PlanChangeCheckout.Status.COMPLETED)
+        self.assertIsNotNone(checkout.completed_at)
+
+        sub = SubscriptionService.get_subscription(self.clinic)
+        self.assertEqual(sub.plan, Subscription.Plan.STANDARD) #type:ignore
+        self.assertEqual(sub.status, Subscription.Status.ACTIVE) #type:ignore
+
+    def test_invalid_plan_value_rejected(self):
+        self.client.login(email="admin@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("billing:select_plan"), {"plan": "not_a_real_plan"})
+
+        self.assertRedirects(response, reverse("billing:change_plan"))
+        self.assertEqual(PlanChangeCheckout.objects.count(), 0)
+
+
+    
