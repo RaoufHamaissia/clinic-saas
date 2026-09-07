@@ -7,7 +7,8 @@ from .constants import (
     STANDARD_MONTHLY_PRICE, STANDARD_DOCTOR_LIMIT, STANDARD_SECRETARY_LIMIT,
     PAY_PER_VISIT_PRICE,
 )
-from .models import Subscription, VisitRecord, Invoice, PlanChangeRequest
+from .models import (Subscription, VisitRecord, Invoice,
+                     PlanChangeRequest, PlanChangeCheckout)
 
 
 class SubscriptionService:
@@ -232,3 +233,31 @@ class PaymentInstructionsService:
     def get():
         from .models import PaymentInstructions
         return PaymentInstructions.load()
+
+
+class PlanChangeCheckoutService:
+
+    @staticmethod
+    def create_pending(*, clinic, requested_by, target_plan, amount):
+        return PlanChangeCheckout.objects.create(
+            clinic=clinic, requested_by=requested_by,
+            target_plan=target_plan, amount=amount,
+        )
+
+    @staticmethod
+    def mark_completed(checkout):
+        checkout.status = PlanChangeCheckout.Status.COMPLETED
+        checkout.completed_at = timezone.now()
+        checkout.save()
+
+        SubscriptionService.switch_plan(checkout.clinic, checkout.target_plan)
+
+        return checkout
+
+    @staticmethod
+    def mark_failed(checkout):
+        checkout.status = PlanChangeCheckout.Status.FAILED
+        checkout.save()
+        return checkout
+
+
