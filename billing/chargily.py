@@ -86,13 +86,9 @@ class ChargilyService:
 
     @staticmethod
     def handle_webhook_event(event: dict):
-        """
-        Processes a verified Chargily webhook payload. Expects something
-        like {"type": "checkout.paid", "data": {"id": "<checkout_id>", ...}}.
-        Marks the matching Invoice as paid, idempotently.
-        """
         from django.utils import timezone
-        from .models import Invoice
+        from .models import Invoice, PlanChangeCheckout
+        from .services import PlanChangeCheckoutService
 
         event_type = event.get("type", "")
         checkout_id = event.get("data", {}).get("id")
@@ -102,17 +98,33 @@ class ChargilyService:
 
         if event_type == "checkout.paid":
             invoice = Invoice.objects.filter(chargily_checkout_id=checkout_id).first()
-            if invoice and invoice.status != Invoice.Status.PAID:
-                invoice.status = Invoice.Status.PAID
-                invoice.paid_at = timezone.now()
-                invoice.save(update_fields=["status", "paid_at"])
-            return invoice
+            if invoice:
+                if invoice.status != Invoice.Status.PAID:
+                    invoice.status = Invoice.Status.PAID
+                    invoice.paid_at = timezone.now()
+                    invoice.save(update_fields=["status", "paid_at"])
+                return invoice
+
+            plan_checkout = PlanChangeCheckout.objects.filter(chargily_checkout_id=checkout_id).first()
+            if plan_checkout and plan_checkout.status != PlanChangeCheckout.Status.COMPLETED:
+                PlanChangeCheckoutService.mark_completed(plan_checkout)
+                return plan_checkout
+
+            return None
 
         if event_type in ("checkout.failed", "checkout.expired"):
             invoice = Invoice.objects.filter(chargily_checkout_id=checkout_id).first()
             if invoice and invoice.status == Invoice.Status.ISSUED:
                 invoice.status = Invoice.Status.OVERDUE
                 invoice.save(update_fields=["status"])
-            return invoice
+                return invoice
+
+            plan_checkout = PlanChangeCheckout.objects.filter(chargily_checkout_id=checkout_id).first()
+            if plan_checkout and plan_checkout.status == PlanChangeCheckout.Status.PENDING:
+                from .services import PlanChangeCheckoutService as PCS
+                PCS.mark_failed(plan_checkout)
+                return plan_checkout
+
+            return None
 
         return None
