@@ -8,9 +8,12 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 
 from .chargily import ChargilyService
-from .models import Invoice
+from .services import (
+    SubscriptionService, InvoiceService, PlanRequestService,
+    PaymentInstructionsService, PlanChangeCheckoutService,
+)
+from .models import Subscription
 
-from .services import SubscriptionService, InvoiceService, PlanRequestService, PaymentInstructionsService
 from .forms import PlanChangeRequestForm
 
 
@@ -113,3 +116,59 @@ def request_plan_change(request):
         "payment_instructions": PaymentInstructionsService.get(),
     }
     return render(request, "billing/request_plan_change.html", context)
+
+
+
+@login_required
+def change_plan(request):
+    clinic = _require_clinic_admin(request)
+
+    subscription = SubscriptionService.get_subscription(clinic)
+
+    plans = [
+        {
+            "value": Subscription.Plan.STANDARD,
+            "label": "Standard",
+            "price": SubscriptionService.get_plan_price(Subscription.Plan.STANDARD),
+            "description": "1 doctor + 1 secretary, unlimited patients.",
+            "requires_payment": True,
+        },
+        {
+            "value": Subscription.Plan.PAY_PER_VISIT,
+            "label": "Pay per visit",
+            "price": None,
+            "description": "Unlimited staff and patients. 50 DA per visit, billed monthly based on actual usage.",
+            "requires_payment": False,
+        },
+    ]
+
+    context = {"subscription": subscription, "plans": plans}
+    return render(request, "billing/change_plan.html", context)
+
+
+@login_required
+@require_POST
+def select_plan(request):
+    clinic = _require_clinic_admin(request)
+
+    target_plan = request.POST.get("plan")
+
+    if target_plan not in (Subscription.Plan.STANDARD, Subscription.Plan.PAY_PER_VISIT):
+        messages.error(request, "Invalid plan selection.")
+        return redirect("billing:change_plan")
+
+    price = SubscriptionService.get_plan_price(target_plan)
+
+    if price is None:
+        # Pay-per-visit — no payment needed, switch takes effect immediately.
+        SubscriptionService.switch_plan(clinic, target_plan)
+        messages.success(request, "Your plan has been switched to Pay-per-visit.")
+        return redirect("billing:status")
+
+    # Standard — needs payment first; create a Chargily checkout and send them there.
+    checkout = PlanChangeCheckoutService.create_pending(
+        clinic=clinic, requested_by=request.user, target_plan=target_plan, amount=price,
+    )
+    ChargilyService.create_plan_change_checkout(checkout)
+
+    return redirect(checkout.chargily_checkout_url)
