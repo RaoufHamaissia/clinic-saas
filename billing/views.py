@@ -12,7 +12,7 @@ from .services import (
     SubscriptionService, InvoiceService, PlanRequestService,
     PaymentInstructionsService, PlanChangeCheckoutService,
 )
-from .models import Subscription
+from .models import Subscription, Invoice
 
 from .forms import PlanChangeRequestForm
 
