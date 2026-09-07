@@ -86,40 +86,6 @@ def chargily_webhook(request):
 
 
 @login_required
-def request_plan_change(request):
-    clinic = _require_clinic_admin(request)
-
-    if request.method == "POST":
-        form = PlanChangeRequestForm(request.POST, request.FILES)
-
-        if form.is_valid():
-            PlanRequestService.create_request(
-                clinic=clinic,
-                requested_by=request.user,
-                requested_plan=form.cleaned_data["requested_plan"],
-                payment_method=form.cleaned_data["payment_method"],
-                proof_file=form.cleaned_data["proof_file"],
-                reference_note=form.cleaned_data["reference_note"],
-            )
-
-            messages.success(
-                request,
-                "Your request has been submitted. We'll review your proof of payment and activate your plan shortly."
-            )
-            return redirect("billing:status")
-
-    else:
-        form = PlanChangeRequestForm()
-
-    context = {
-        "form": form,
-        "payment_instructions": PaymentInstructionsService.get(),
-    }
-    return render(request, "billing/request_plan_change.html", context)
-
-
-
-@login_required
 def change_plan(request):
     clinic = _require_clinic_admin(request)
 
@@ -172,3 +138,38 @@ def select_plan(request):
     ChargilyService.create_plan_change_checkout(checkout)
 
     return redirect(checkout.chargily_checkout_url)
+
+@login_required
+def request_plan_change(request):
+    clinic = _require_clinic_admin(request)
+
+    if request.method == "POST":
+        form = PlanChangeRequestForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            PlanRequestService.create_request(
+                clinic=clinic,
+                requested_by=request.user,
+                requested_plan=form.cleaned_data["requested_plan"],
+                payment_method=form.cleaned_data["payment_method"],
+                proof_file=form.cleaned_data["proof_file"],
+                reference_note=form.cleaned_data["reference_note"],
+            )
+
+            messages.success(
+                request,
+                "Your request has been submitted. We'll review your proof of payment and activate your plan shortly."
+            )
+            return redirect("billing:status")
+
+    else:
+        form = PlanChangeRequestForm()
+
+    context = {
+        "form": form,
+        "payment_instructions": PaymentInstructionsService.get(),
+    }
+    return render(request, "billing/request_plan_change.html", context)
+
+
+
