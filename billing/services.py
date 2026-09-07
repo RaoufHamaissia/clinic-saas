@@ -64,6 +64,34 @@ class SubscriptionService:
 
         return SecretaryProfile.objects.filter(clinic=clinic).count() < STANDARD_SECRETARY_LIMIT
 
+    @staticmethod
+    def get_plan_price(plan):
+        """
+        Returns the upfront price to switch into a plan, or None if the plan
+        has no upfront cost (Pay-per-visit bills retroactively via monthly
+        invoices, not at switch time).
+        """
+        if plan == Subscription.Plan.STANDARD:
+            return STANDARD_MONTHLY_PRICE
+        return None
+
+    @staticmethod
+    def switch_plan(clinic, plan):
+        """
+        Immediately activates the given plan for the clinic — no proration,
+        no refund, effective right away. Used both for the no-payment-needed
+        Pay-per-visit switch and by the Chargily webhook once a Standard-plan
+        checkout is confirmed paid.
+        """
+        sub, _ = Subscription.objects.get_or_create(clinic=clinic)
+
+        sub.plan = plan
+        sub.status = Subscription.Status.ACTIVE
+        sub.trial_ends_at = None
+        sub.save()
+
+        return sub
+
 
 class BillingService:
 
