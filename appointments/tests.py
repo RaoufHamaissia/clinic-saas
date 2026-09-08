@@ -501,3 +501,25 @@ class AppointmentEditViewTests(TestCase):
 
         appt.refresh_from_db()
         self.assertEqual(appt.scheduled_at, original_time)
+
+    def test_editing_scheduled_appointment_with_blank_date_shows_error_not_crash(self):
+        appt = AppointmentService.create_appointment(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor,
+            appointment_type=self.appt_type, scheduled_at=timezone.now() + timedelta(days=1),
+            created_by=self.user,
+        )
+
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        # Deliberately omit scheduled_at entirely — this is a non-walk-in appointment,
+        # so the service must reject this cleanly rather than crash on None < now().
+        response = self.client.post(reverse("appointments:edit", args=[appt.pk]), {
+            "doctor": self.doctor.pk,
+            "type": "Consultation",
+        })
+
+        self.assertEqual(response.status_code, 200)  # not 500
+        self.assertIn("required for a scheduled appointment", str(response.context["form"].errors))
+
+        appt.refresh_from_db()
+        self.assertEqual(appt.doctor, self.doctor)  # unchanged
