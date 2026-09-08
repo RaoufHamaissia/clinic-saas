@@ -401,7 +401,23 @@ class AppointmentViewTests(TestCase):
         other_appt.refresh_from_db()
         self.assertEqual(other_appt.status, Appointment.Status.WAITING)
 
+    def test_deactivated_doctor_not_in_appointment_form_dropdown(self):
+        other_doctor_user = User.objects.create_user( #type:ignore
+            email="inactive-doc@example.com", password="pw", clinic=self.clinic_a
+        )
+        other_doctor = DoctorProfile.objects.create(
+            user=other_doctor_user, clinic=self.clinic_a, specialty=self.specialty
+        )
+        other_doctor_user.is_active = False
+        other_doctor_user.save()
 
+        self.client.login(email="staff-a@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("appointments:add"))
+
+        form = response.context["form"]
+        self.assertIn(self.doctor, form.fields["doctor"].queryset)
+        self.assertNotIn(other_doctor, form.fields["doctor"].queryset)
 class AppointmentTypeSuggestViewTests(TestCase):
 
     def setUp(self):
