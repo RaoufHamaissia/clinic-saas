@@ -33,7 +33,7 @@ class PrescriptionForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if clinic is not None:
-            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic)  #type:ignore
+            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic, user__is_active=True)  #type:ignore
 
 
 class PrescriptionItemForm(forms.Form):
@@ -84,7 +84,7 @@ class DoctorNoteForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if clinic is not None:
-            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
+            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic, user__is_active=True) #type:ignore
 
 
 
@@ -96,7 +96,7 @@ class ProcedureReportForm(forms.Form):
     def __init__(self, *args, clinic=None, **kwargs):
         super().__init__(*args, **kwargs)
         if clinic is not None:
-            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
+            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic, user__is_active=True) #type:ignore
 
 
 class ProcedureItemForm(forms.Form):
@@ -120,7 +120,7 @@ class LabworkDemandForm(forms.Form):
     def __init__(self, *args, clinic=None, **kwargs):
         super().__init__(*args, **kwargs)
         if clinic is not None:
-            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
+            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic, user__is_active=True) #type:ignore
 
 
 class LabworkItemForm(forms.Form):
