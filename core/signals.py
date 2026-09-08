@@ -80,3 +80,13 @@ def _log_login_failed(sender, credentials, request=None, **kwargs):
     )
 
 
+def _log_model_change(sender, instance, created, **kwargs):
+    actor = get_current_user()
+    clinic = get_current_clinic() or getattr(instance, "clinic", None)
+
+    AuditLogService.log(
+        actor=actor,
+        clinic=clinic,
+        action=AuditLogService.Action.CREATE if created else AuditLogService.Action.UPDATE,
+        target=instance,
+    )
