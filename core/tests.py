@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import User
@@ -185,3 +185,18 @@ class LandingPageTests(TestCase):
 
         self.assertContains(response, reverse("clinics:register"))
         self.assertContains(response, reverse("accounts:login"))
+
+
+class ErrorPageTests(TestCase):
+
+    def test_404_page_renders_for_nonexistent_url(self):
+        response = self.client.get("/this-url-does-not-exist/")
+        self.assertEqual(response.status_code, 404)
+
+    @override_settings(DEBUG=False)
+    def test_custom_404_template_is_used_when_debug_is_false(self):
+        response = self.client.get("/this-url-does-not-exist/")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Page not found", status_code=404)
+        self.assertContains(response, "Back to home", status_code=404)
