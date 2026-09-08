@@ -1,14 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-
+from django.contrib.sessions.models import Session
+from django.utils import timezone
 
 from billing.services import SubscriptionService
-
-
 from accounts.models import User
 
 from .models import Clinic, Specialty
-
 from .profiles import DoctorProfile, SecretaryProfile
 
 
@@ -109,7 +107,23 @@ class StaffService:
         profile.user.is_active = is_active
         profile.user.save(update_fields=["is_active"])
 
+        if not is_active:
+            StaffService._kill_active_sessions_for(profile.user)
+
         return profile
+
+    @staticmethod
+    def _kill_active_sessions_for(user):
+        """
+        Deactivation should end access immediately, not just block future
+        logins — without this, a user already logged in when deactivated
+        keeps working access until their session naturally expires.
+        O(n) over all active sessions; acceptable at current scale.
+        """
+        for session in Session.objects.filter(expire_date__gte=timezone.now()):
+            data = session.get_decoded()
+            if str(data.get("_auth_user_id")) == str(user.pk):
+                session.delete()
 
 
 class ClinicService:
