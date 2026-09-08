@@ -1,6 +1,8 @@
 import io
 from PIL import Image
 from unittest.mock import patch
+import datetime as dt
+from django.utils import timezone
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -884,3 +886,44 @@ class NoteEditTests(TestCase):
 
         note.refresh_from_db()
         self.assertEqual(note.content, "Original content")
+
+
+
+class SameDayEditTimezoneTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.user = User.objects.create_user(email="doc@example.com", password="pw", clinic=self.clinic)
+        self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic, specialty=self.specialty)
+        self.patient = Patient.objects.create(clinic=self.clinic, first_name="John", last_name="A")
+
+    @patch("django.utils.timezone.now")
+    def test_note_created_just_after_utc_midnight_is_still_same_day_in_algiers(self, mock_now):
+        fixed_utc_time = dt.datetime(2025, 6, 15, 0, 30, 0, tzinfo=dt.timezone.utc)
+        mock_now.return_value = fixed_utc_time
+
+        note = DoctorNoteService.create_note(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor, content="Original"
+        )
+
+        DoctorNoteService.update_note(note=note, doctor=self.doctor, content="Edited")
+
+        note.refresh_from_db()
+        self.assertEqual(note.content, "Edited")
+        # 00:30 UTC = 01:30 Algiers (UTC+1) on the same calendar day in Algiers.
+        # Before the fix, comparing raw UTC dates could treat this as "yesterday".
+        fixed_utc_time = timezone.make_aware( 
+            dt.datetime(2025, 6, 15, 0, 30, 0), timezone=__import__("datetime").timezone.utc
+        )
+        mock_now.return_value = fixed_utc_time
+
+        note = DoctorNoteService.create_note(
+            clinic=self.clinic, patient=self.patient, doctor=self.doctor, content="Original"
+        )
+
+        # Still "now" at the same mocked instant — must be editable.
+        DoctorNoteService.update_note(note=note, doctor=self.doctor, content="Edited")
+
+        note.refresh_from_db()
+        self.assertEqual(note.content, "Edited")
