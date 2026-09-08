@@ -119,9 +119,11 @@ class AppointmentService:
         if doctor.clinic_id != appointment.clinic_id:
             raise ValueError("Doctor does not belong to this clinic.")
 
-        if not appointment.is_walk_in and scheduled_at < timezone.now():
-            raise ValidationError("You can't reschedule an appointment into the past.")
-
+        if not appointment.is_walk_in:
+            if scheduled_at is None:
+                raise ValueError("A date and time is required for a scheduled appointment.")
+            if scheduled_at < timezone.now():
+                raise ValidationError("You can't reschedule an appointment into the past.")
         appointment.doctor = doctor
         appointment.type = appointment_type
         if not appointment.is_walk_in:

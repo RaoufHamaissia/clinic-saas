@@ -894,7 +894,7 @@ class SameDayEditTimezoneTests(TestCase):
     def setUp(self):
         self.clinic = Clinic.objects.create(name="Clinic A")
         self.specialty = Specialty.objects.create(name="General Medicine")
-        self.user = User.objects.create_user(email="doc@example.com", password="pw", clinic=self.clinic)
+        self.user = User.objects.create_user(email="doc@example.com", password="pw", clinic=self.clinic) #type:ignore
         self.doctor = DoctorProfile.objects.create(user=self.user, clinic=self.clinic, specialty=self.specialty)
         self.patient = Patient.objects.create(clinic=self.clinic, first_name="John", last_name="A")
 
