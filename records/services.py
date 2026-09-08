@@ -5,8 +5,9 @@ from django.utils import timezone
 
 
 def _is_same_day(instance):
-    return instance.created_at.date() == timezone.localdate()
+    return timezone.localtime(instance.created_at).date() == timezone.localdate()
 
+    
 class MedicationService:
     @staticmethod
     def suggest(query, limit=10):
