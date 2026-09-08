@@ -45,7 +45,9 @@ class AppointmentForm(forms.Form):
 
         if clinic is not None:
             self.fields["patient"].queryset = Patient.objects.for_clinic(clinic) #type:ignore
-            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
+            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic, user__is_active=True) #type:ignore
+
+
 
     def clean_type(self):
         name = self.cleaned_data["type"].strip()
@@ -95,7 +97,7 @@ class WalkInForm(forms.Form):
 
         if clinic is not None:
             self.fields["patient"].queryset = Patient.objects.for_clinic(clinic) #type:ignore
-            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic) #type:ignore
+            self.fields["doctor"].queryset = DoctorProfile.objects.filter(clinic=clinic, user__is_active=True) #type:ignore
 
     def clean_type(self):
         name = self.cleaned_data["type"].strip()
