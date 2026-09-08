@@ -455,4 +455,23 @@ class StaffDetailAndDeactivateTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_deactivating_doctor_ends_their_active_session(self):
+        # Log in as the doctor who is about to be deactivated
+        self.client.login(email="other-doc@example.com", password="StrongPassword123!")
 
+        # Confirm the session actually works before deactivation
+        response = self.client.get(reverse("core:dashboard"))
+        self.assertEqual(response.status_code, 200)
+
+        # A separate client acts as the admin deactivating them,
+        # so the doctor's own session/cookies aren't touched by this call.
+        from django.test import Client
+        admin_client = Client()
+        admin_client.login(email="admin@example.com", password="StrongPassword123!")
+        admin_client.post(reverse("clinics:doctor_toggle_active", args=[self.other_doctor.pk]))
+
+        # The doctor's original session should now be dead, not just
+        # blocked at next login — this request should redirect to login.
+        response = self.client.get(reverse("core:dashboard"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response.url) #type:ignore
