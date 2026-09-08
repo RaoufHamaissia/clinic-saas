@@ -29,10 +29,12 @@ def connect_model_audit_signals():
     from patients.models import Patient
     from appointments.models import Appointment
     from records.models import Prescription, DoctorNote, ProcedureReport, LabworkDemand
+    from billing.models import Subscription, Invoice, VisitRecord, PlanChangeRequest, PlanChangeCheckout
 
     tracked_models = (
         User, Clinic, DoctorProfile, SecretaryProfile,
         Patient, Appointment, Prescription, DoctorNote, ProcedureReport, LabworkDemand,
+        Subscription, Invoice, VisitRecord, PlanChangeRequest, PlanChangeCheckout,
     )
 
     for model in tracked_models:
@@ -78,23 +80,3 @@ def _log_login_failed(sender, credentials, request=None, **kwargs):
     )
 
 
-def connect_model_audit_signals():
-    """
-    Called once from CoreConfig.ready(). Imports are deferred to inside
-    this function (not module level) to avoid circular-import issues —
-    by the time ready() runs, every app's models are fully loaded.
-    """
-    from accounts.models import User
-    from clinics.models import Clinic
-    from clinics.profiles import DoctorProfile, SecretaryProfile
-    from patients.models import Patient
-    from appointments.models import Appointment
-    from records.models import Prescription, DoctorNote, ProcedureReport, LabworkDemand
-
-    tracked_models = (
-        User, Clinic, DoctorProfile, SecretaryProfile,
-        Patient, Appointment, Prescription, DoctorNote, ProcedureReport, LabworkDemand,
-    )
-
-    for model in tracked_models:
-        post_save.connect(_log_model_change, sender=model, dispatch_uid=f"audit_{model.__name__}")
