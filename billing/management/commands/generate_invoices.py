@@ -1,49 +1,21 @@
-from datetime import date
-from calendar import monthrange
-
 from django.core.management.base import BaseCommand
 
-from billing.chargily import ChargilyService
-from billing.models import Subscription
-from billing.services import InvoiceService
+from billing.tasks import generate_monthly_invoices
 
 
 class Command(BaseCommand):
-    help = "Generates monthly invoices for all clinics on paid plans, and creates Chargily checkouts for them."
+    help = "Generates monthly invoices for all clinics on paid plans, and creates Chargily checkouts for them. Runs synchronously (not via Celery) when invoked manually."
 
     def handle(self, *args, **options):
-        today = date.today()
+        result = generate_monthly_invoices()
 
-        first_of_this_month = today.replace(day=1)
-        last_month_end = first_of_this_month.replace(day=1)
-        last_month_end = date(last_month_end.year, last_month_end.month, 1)
-        # Compute previous month's start/end
-        if today.month == 1:
-            period_start = date(today.year - 1, 12, 1)
-        else:
-            period_start = date(today.year, today.month - 1, 1)
-        period_end = date(period_start.year, period_start.month, monthrange(period_start.year, period_start.month)[1])
+        for entry in result["created"]:
+            self.stdout.write(f"Invoice #{entry['invoice_id']} for {entry['clinic']}: {entry['amount']} DA")
 
-        subscriptions = Subscription.objects.filter(
-            plan__in=[Subscription.Plan.STANDARD, Subscription.Plan.PAY_PER_VISIT],
-            status=Subscription.Status.ACTIVE,
-        ).select_related("clinic")
+        for entry in result["failed"]:
+            self.stderr.write(f"Failed for {entry['clinic']}: {entry['error']}")
 
-        created_count = 0
-
-        for sub in subscriptions:
-            invoice = InvoiceService.generate_monthly_invoice(sub.clinic, period_start, period_end)
-
-            if invoice is None:
-                continue
-
-            try:
-                ChargilyService.create_checkout(invoice)
-            except Exception as e:
-                self.stderr.write(f"Failed to create Chargily checkout for invoice {invoice.pk}: {e}")
-                continue
-
-            created_count += 1
-            self.stdout.write(f"Invoice #{invoice.pk} for {sub.clinic.name}: {invoice.amount_due} DA")
-
-        self.stdout.write(self.style.SUCCESS(f"Generated {created_count} invoice(s) for {period_start} – {period_end}."))
+        self.stdout.write(self.style.SUCCESS(
+            f"Generated {len(result['created'])} invoice(s), {len(result['failed'])} failure(s) "
+            f"for {result['period_start']} – {result['period_end']}."
+        ))
