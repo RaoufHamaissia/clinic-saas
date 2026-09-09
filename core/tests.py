@@ -200,3 +200,65 @@ class ErrorPageTests(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertContains(response, "Page not found", status_code=404)
         self.assertContains(response, "Back to home", status_code=404)
+
+
+class BillingAuditSignalTests(TestCase):
+
+    def test_creating_subscription_logs_create_action(self):
+        from billing.models import Subscription
+        from core.models import AuditLog
+        from clinics.models import Clinic
+
+        clinic = Clinic.objects.create(name="Clinic A")
+
+        Subscription.objects.create(clinic=clinic)
+
+        entry = AuditLog.objects.filter(action="create", content_type__model="subscription").latest("created_at")
+        self.assertEqual(entry.clinic, clinic)
+
+    def test_updating_invoice_logs_update_action(self):
+        from decimal import Decimal
+        from datetime import date
+        from billing.models import Invoice
+        from core.models import AuditLog
+        from clinics.models import Clinic
+
+        clinic = Clinic.objects.create(name="Clinic A")
+        invoice = Invoice.objects.create(
+            clinic=clinic, plan="standard",
+            period_start=date(2025, 1, 1), period_end=date(2025, 1, 31),
+            amount_due=Decimal("10000.00"),
+        )
+
+        invoice.status = Invoice.Status.PAID
+        invoice.save()
+
+        entry = AuditLog.objects.filter(action="update", content_type__model="invoice").latest("created_at")
+        self.assertEqual(entry.object_id, invoice.pk)
+
+    def test_creating_visit_record_logs_create_action(self):
+        from billing.models import VisitRecord, Subscription
+        from core.models import AuditLog
+        from clinics.models import Clinic, Specialty
+        from clinics.profiles import DoctorProfile
+        from accounts.models import User
+        from patients.models import Patient
+        from appointments.models import AppointmentType
+        from appointments.services import AppointmentService
+
+        specialty = Specialty.objects.create(name="General Medicine")
+        clinic = Clinic.objects.create(name="Clinic A")
+        user = User.objects.create_user(email="doc@example.com", password="pw", clinic=clinic) #type:ignore
+        doctor = DoctorProfile.objects.create(user=user, clinic=clinic, specialty=specialty)
+        patient = Patient.objects.create(clinic=clinic, first_name="John", last_name="A")
+        appt_type = AppointmentType.objects.create(name="Consultation")
+
+        Subscription.objects.create(clinic=clinic, plan=Subscription.Plan.PAY_PER_VISIT, status=Subscription.Status.ACTIVE)
+
+        AppointmentService.create_walk_in(
+            clinic=clinic, patient=patient, doctor=doctor, appointment_type=appt_type, created_by=user,
+        )
+
+        self.assertTrue(
+            AuditLog.objects.filter(action="create", content_type__model="visitrecord").exists()
+        )
