@@ -35,13 +35,6 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1']) #type:ignore
 
-CHARGILY_KEY = env('CHARGILY_KEY', default='') #type:ignore
-CHARGILY_SECRET = env('CHARGILY_SECRET', default='') #type:ignore
-CHARGILY_BASE_URL = env('CHARGILY_BASE_URL', default='https://pay.chargily.net/test/api/v2/') #type:ignore
-CHARGILY_SUCCESS_URL = env('CHARGILY_SUCCESS_URL', default='http://localhost:8000/billing/payment-success/') #type:ignore
-CHARGILY_FAILURE_URL = env('CHARGILY_FAILURE_URL', default='http://localhost:8000/billing/payment-failure/') #type:ignore
-CHARGILY_WEBHOOK_URL = env('CHARGILY_WEBHOOK_URL', default='http://localhost:8000/billing/webhook/') #type:ignore
-
 
 # Application definition
 
@@ -61,6 +54,8 @@ INSTALLED_APPS = [
     "records",
     "billing",
     "phonenumber_field",
+
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -187,3 +182,14 @@ Generate a new secret key using the following command in your terminal before pr
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 
 """
+
+# ENV configuration
+CHARGILY_KEY = env('CHARGILY_KEY', default='') #type:ignore
+CHARGILY_SECRET = env('CHARGILY_SECRET', default='') #type:ignore
+CHARGILY_BASE_URL = env('CHARGILY_BASE_URL', default='https://pay.chargily.net/test/api/v2/') #type:ignore
+CHARGILY_SUCCESS_URL = env('CHARGILY_SUCCESS_URL', default='http://localhost:8000/billing/payment-success/') #type:ignore
+CHARGILY_FAILURE_URL = env('CHARGILY_FAILURE_URL', default='http://localhost:8000/billing/payment-failure/') #type:ignore
+CHARGILY_WEBHOOK_URL = env('CHARGILY_WEBHOOK_URL', default='http://localhost:8000/billing/webhook/') #type:ignore
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0') #type:ignore
+CELERY_RESULT_BACKEND = env('CELERY_BROKER_URL', default='redis://localhost:6379/0') #type:ignore
+CELERY_TIMEZONE = TIME_ZONE 
