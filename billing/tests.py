@@ -24,7 +24,7 @@ from .services import (PaymentInstructionsService, SubscriptionService, BillingS
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from django.core.exceptions import ValidationError 
-
+from billing.tasks import generate_monthly_invoices
 
 
 
@@ -588,5 +588,51 @@ class PlanChangeCheckoutTests(TestCase):
         self.assertRedirects(response, reverse("billing:change_plan"))
         self.assertEqual(PlanChangeCheckout.objects.count(), 0)
 
+
+
+class GenerateMonthlyInvoicesTaskTests(TestCase):
+
+    def setUp(self):
+        self.specialty = Specialty.objects.create(name="General Medicine")
+        self.clinic, self.doctor = ClinicService.create_clinic(
+            clinic_name="Test Clinic", doctor_email="admin@example.com", password="StrongPassword123!",
+            first_name="J", last_name="D", specialty=self.specialty,
+        )
+        sub = SubscriptionService.get_subscription(self.clinic)
+        sub.plan = Subscription.Plan.STANDARD #type:ignore
+        sub.status = Subscription.Status.ACTIVE #type:ignore
+        sub.save() #type:ignore
+ 
+    def test_task_generates_invoice_for_active_standard_clinic(self):
+        with patch("billing.chargily.ChargilyService._create_checkout_session") as mock_session:
+            mock_session.return_value = ("chk_test", "https://pay.chargily.net/test/checkout/chk_test")
+
+            result = generate_monthly_invoices()
+
+        self.assertEqual(len(result["created"]), 1)
+        self.assertEqual(result["created"][0]["clinic"], "Test Clinic")
+
+    def test_task_skips_trial_clinics(self):
+        # Reset to trial for this test
+        sub = SubscriptionService.get_subscription(self.clinic)
+        sub.plan = Subscription.Plan.TRIAL #type:ignore
+        sub.status = Subscription.Status.TRIALING #type:ignore
+        sub.save() #type:ignore
+
+        result = generate_monthly_invoices()
+
+        self.assertEqual(len(result["created"]), 0)
+
+    def test_management_command_calls_task_and_reports_output(self):
+        from io import StringIO
+        from django.core.management import call_command
+
+        with patch("billing.chargily.ChargilyService._create_checkout_session") as mock_session:
+            mock_session.return_value = ("chk_test", "https://pay.chargily.net/test/checkout/chk_test")
+
+            out = StringIO()
+            call_command("generate_invoices", stdout=out)
+
+        self.assertIn("Generated 1 invoice", out.getvalue())
 
     
