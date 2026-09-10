@@ -2,14 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-
-
+from django.utils.translation import gettext as _
+from django.contrib.auth.forms import PasswordChangeForm
 
 from .forms import LoginForm, ProfileForm, StyledPasswordChangeForm
 
 
 # Create your views here.
-
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("core:dashboard")
@@ -25,12 +24,12 @@ def login_view(request):
 
             if user is not None:
                 if not user.is_active:
-                    form.add_error(None, "Your account is inactive.")
+                    form.add_error(None, _("Your account is inactive."))
 
-                else:   
+                else:
                     login(request, user)
 
-                    next_url = request.GET.get("next") 
+                    next_url = request.GET.get("next")
 
                     if next_url:
                         return redirect(next_url)
@@ -38,27 +37,24 @@ def login_view(request):
                     return redirect('core:dashboard')
 
             else:
-                form.add_error(None, 'Invalid email or password.')
+                form.add_error(None, _("Invalid email or password."))
 
     else:
         form = LoginForm()
 
     context = { "form": form}
-    return render(request, 'accounts/login.html', context) 
-
+    return render(request, 'accounts/login.html', context)
 
 @login_required
 def logout_view(request):
     if request.method == "POST":
         logout(request)
 
-        messages.success(request, "You have been logged out successfully")
+        messages.success(request, _("You have been logged out successfully"))
 
         return redirect("accounts:login")
-    
+
     return redirect("core:dashboard")
-
-
 @login_required
 def edit_profile(request):
     if request.method == "POST":
@@ -68,7 +64,7 @@ def edit_profile(request):
 
             if profile_form.is_valid():
                 profile_form.save()
-                messages.success(request, "Profile updated successfully")
+                messages.success(request, _("Profile updated successfully"))
                 return redirect("accounts:edit_profile")
 
         elif "change_password" in request.POST:
@@ -77,8 +73,8 @@ def edit_profile(request):
 
             if password_form.is_valid():
                 user = password_form.save()
-                update_session_auth_hash(request, user)  # keeps the user logged in after password change
-                messages.success(request, "Password changed successfully")
+                update_session_auth_hash(request, user)
+                messages.success(request, _("Password changed successfully"))
                 return redirect("accounts:edit_profile")
 
         else:
