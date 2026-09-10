@@ -64,6 +64,10 @@ class User(AbstractUser):
         DOCTOR = "doctor", "Doctor"
         SECRETARY = "secretary", "Secretary"
 
+    class Language(models.TextChoices):
+        ENGLISH = "en", "English"
+        FRENCH = "fr", "Français"
+
     role = models.CharField(max_length=20, choices=Role.choices)
 
     username = None #type:ignore
@@ -75,6 +79,8 @@ class User(AbstractUser):
     clinic = models.ForeignKey("clinics.Clinic", on_delete=models.PROTECT, related_name="users",null=True, blank=True)
 
     is_clinic_admin = models.BooleanField(default=False)
+
+    language = models.CharField(max_length=10, choices=Language.choices, default=Language.ENGLISH)
 
     objects = UserManager()  #type:ignore
 
