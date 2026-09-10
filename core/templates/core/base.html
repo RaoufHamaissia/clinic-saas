@@ -1,5 +1,6 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ request.LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,46 +58,46 @@
                     
                     <li class="nav-item">
                         <a href="{% url "core:dashboard" %}" class="nav-link {% if request.resolver_match.view_name == 'core:dashboard' %}active{% endif %}">
-                            Dashboard
+                            {% trans "Dashboard" %}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{% url "accounts:edit_profile" %}" class="nav-link {% if request.resolver_match.view_name == 'accounts:edit_profile' %}active{% endif %}">
-                            My Profile
+                            {% trans "My Profile" %}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{% url "patients:list" %}" class="nav-link {% if request.resolver_match.view_name == 'patients:list' or request.resolver_match.view_name == 'patients:add' %}active{% endif %}">
-                            Patients
+                            {% trans "Patients" %}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{% url "appointments:day" %}" class="nav-link {% if request.resolver_match.app_name == 'appointments' %}active{% endif %}">
-                            Appointments
+                            {% trans "Appointments" %}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{% url "clinics:doctor_list" %}" class="nav-link {% if request.resolver_match.view_name == 'clinics:doctor_list' or request.resolver_match.view_name == 'clinics:doctor_add' %}active{% endif %}">
-                            Doctors
+                            {% trans "Doctors" %}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{% url "clinics:secretary_list" %}" class="nav-link {% if request.resolver_match.view_name == 'clinics:secretary_list' or request.resolver_match.view_name == 'clinics:secretary_add' %}active{% endif %}">
-                            Secretaries
+                            {% trans "Secretaries" %}
                         </a>
                     </li>
                     
                     {% if request.user.role == "doctor" %}
                         <li class="nav-item">
                             <a href="{% url "records:edit_document_profile" %}" class="nav-link {% if request.resolver_match.view_name == 'records:edit_document_profile' %}active{% endif %}">
-                                My Document Profile
+                                {% trans "My Document Profile" %}
                             </a>
                         </li>
                     {% endif %}
                     {% if request.user.is_superuser %}
                         <li class="nav-item">
                             <a href="{% url "core:audit_log" %}" class="nav-link {% if request.resolver_match.view_name == 'core:audit_log' %}active{% endif %}">
-                                Audit Log
+                                {% trans "Audit Log" %}
                             </a>
                         </li>
                     {% endif %}
@@ -104,14 +105,14 @@
                     {% if request.user.is_clinic_admin %}
                         <li class="nav-item">
                             <a href="{% url "billing:status" %}" class="nav-link {% if request.resolver_match.app_name == 'billing' %}active{% endif %}">
-                                Billing
+                                {% trans "Billing" %}
                             </a>
                         </li>
                     {% endif %}
                     {% if request.user.is_clinic_admin %}
                         <li class="nav-item">
                             <a href="{% url "clinics:settings" %}" class="nav-link {% if request.resolver_match.view_name == 'clinics:settings' %}active{% endif %}">
-                                Settings
+                                {% trans "Settings" %}
                             </a>
                         </li>
                     {% endif %}
@@ -126,7 +127,7 @@
                     <div>
                         <span class="fw-semibold">
                             {% block page_title %}
-                                Dashboard
+                                {% trans "Dashboard" %}
                             {% endblock page_title %}
                         </span>
                     </div>
@@ -138,7 +139,7 @@
 
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
-                                <a href="#" class="dropdown-item">Profile</a>
+                                <a href="{% url "accounts:edit_profile" %}" class="dropdown-item">{% trans "Profile" %}</a>
                             </li>
                             <li>
                                 <hr class="dropdown-divider">
@@ -147,7 +148,7 @@
                                 <form method="post" action="{% url "accounts:logout" %}" class="m-0">
                                     {% csrf_token %}
                                     <button type="submit" class="dropdown-item text-danger">
-                                        Logout
+                                        {% trans "Logout" %}
                                     </button>
                                 </form>
                                 
