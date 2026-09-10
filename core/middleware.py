@@ -2,6 +2,7 @@ from .context import (set_current_clinic, clear_current_clinic,
                       set_current_user, clear_current_user)
 from .services import AuditLogService
 from django.conf import settings
+from django.utils import translation
 
 class CurrentClinicMiddleware:
     """
@@ -65,5 +66,39 @@ class AuditTrailMiddleware:
             )
 
         clear_current_user()
+
+        return response
+
+
+class UserLanguageMiddleware:
+    """
+    Activates the translation for the logged-in user's saved language
+    preference (accounts.User.language), rather than URL-prefix-based
+    i18n_patterns — fits this app's usage pattern, since nearly every
+    real user is authenticated, not an anonymous browser being routed.
+    Anonymous requests (the landing page) fall back to the browser's
+    Accept-Language header via Django's standard detection.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, "user", None)
+        language = None
+
+        if user and user.is_authenticated and getattr(user, "language", None):
+            language = user.language
+
+        if not language:
+            language = translation.get_language_from_request(request)
+
+        translation.activate(language)
+        request.LANGUAGE_CODE = translation.get_language()
+
+        try:
+            response = self.get_response(request)
+        finally:
+            translation.deactivate()
 
         return response

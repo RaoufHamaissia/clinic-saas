@@ -68,6 +68,8 @@ MIDDLEWARE = [
     'core.middleware.CurrentClinicMiddleware',
 
     'core.middleware.AuditTrailMiddleware',
+
+    'core.middleware.UserLanguageMiddleware',
     
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
