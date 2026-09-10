@@ -46,6 +46,13 @@
                                 <div class="text-danger small mt-1">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        <div class="mb-4">
+                            {{ profile_form.language.label_tag }}
+                            {{ profile_form.language }}
+                            {% for error in profile_form.language.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
 
                         <button type="submit" name="update_profile" class="btn btn-primary">
                             Save changes
