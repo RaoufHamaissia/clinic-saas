@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 from phonenumber_field.formfields import PhoneNumberField
+from django.utils.translation import gettext_lazy as _
 
 from .models import User
 
@@ -35,11 +36,18 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "email", "phone"]
+        fields = ["first_name", "last_name", "email", "phone", "language"]
+        labels = {
+            "first_name": _("First name"),
+            "last_name": _("Last name"),
+            "email": _("Email"),
+            "language": _("Language"),
+        }
         widgets = {
             "first_name": forms.TextInput(attrs={"class": "form-control"}),
             "last_name": forms.TextInput(attrs={"class": "form-control"}),
             "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "language": forms.Select(attrs={"class": "form-select"}),
         }
 
     def clean_email(self):
