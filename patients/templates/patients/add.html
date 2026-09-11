@@ -1,11 +1,11 @@
 {% extends "core/base.html" %}
-
+{% load i18n %}
 {% block title %}
-    Add Patient | MediCore
+    {% trans "Add Patient" %} | MediCore
 {% endblock title %}
 
 {% block page_title %}
-    Add patient
+    {% trans "Add Patient" %}
 {% endblock page_title %}
 
 {% block content %}
@@ -87,11 +87,11 @@
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
-                        Add patient
+                        {% trans "Add patient" %}
                     </button>
 
                     <a href="{% url "patients:list" %}" class="btn btn-outline-secondary">
-                        Cancel
+                        {% trans "Cancel" %}
                     </a>
                 </div>
 

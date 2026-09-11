@@ -1,7 +1,8 @@
 {% extends "core/base.html" %}
+{% load i18n %}
 
-{% block title %}Edit {{ patient }} | MediCore{% endblock title %}
-{% block page_title %}Edit patient{% endblock page_title %}
+{% block title %}{% trans "Edit" %} {{ patient }} | MediCore{% endblock title %}
+{% block page_title %}{% trans "Edit patient" %}{% endblock page_title %}
 
 {% block content %}
     <div class="card border-0 shadow-sm">
@@ -57,8 +58,8 @@
                     {% for error in form.reason_for_visit.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                 </div>
 
-                <button type="submit" class="btn btn-primary">Save changes</button>
-                <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
+                <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
             </form>
         </div>
     </div>
