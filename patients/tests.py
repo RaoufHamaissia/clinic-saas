@@ -202,4 +202,29 @@ class PatientEditViewTests(TestCase):
         self.assertEqual(self.patient.reason_for_visit, "Follow-up")
 
 
-    
+
+
+class PatientLocalizationTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.user = User.objects.create_user( #type:ignore
+            email="staff@example.com", password="StrongPassword123!", clinic=self.clinic, language="fr"
+        )
+        Patient.objects.create(clinic=self.clinic, first_name="John", last_name="A")
+
+    def test_patient_list_renders_in_french(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("patients:list"))
+
+        self.assertContains(response, "Patients")
+        self.assertContains(response, "Ajouter un patient")
+
+    def test_patient_add_form_renders_in_french(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.get(reverse("patients:add"))
+
+        self.assertContains(response, "Prénom")
+        self.assertContains(response, "Date de naissance")

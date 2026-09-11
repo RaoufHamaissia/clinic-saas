@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 00:00+0000\n"
+"POT-Creation-Date: 2026-09-11 12:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-#: accounts/forms.py:41
+
+#: accounts/forms.py:41 patients/forms.py:8 patients/forms.py:12
 msgid "First name"
 msgstr "Prénom"
 
-#: accounts/forms.py:42
+#: accounts/forms.py:42 patients/forms.py:19 patients/forms.py:23
 msgid "Last name"
 msgstr "Nom"
 
@@ -33,6 +34,7 @@ msgstr "E-mail"
 msgid "Language"
 msgstr "Langue"
 
+#: accounts/templates/accounts/edit_profile.html:3
 #: accounts/templates/accounts/edit_profile.html:4
 #: core/templates/core/base.html:66
 msgid "My Profile"
@@ -84,10 +86,13 @@ msgid "Dashboard"
 msgstr "Tableau de bord"
 
 #: core/templates/core/base.html:71 core/templates/core/dashboard.html:32
+#: patients/templates/patients/list.html:4
+#: patients/templates/patients/list.html:8
+#: patients/templates/patients/list.html:15
 msgid "Patients"
 msgstr "Patients"
 
-#: core/templates/core/base.html:76
+#: core/templates/core/base.html:76 patients/templates/patients/detail.html:25
 msgid "Appointments"
 msgstr "Rendez-vous"
 
@@ -146,10 +151,16 @@ msgid "Patient"
 msgstr "Patient"
 
 #: core/templates/core/dashboard.html:121
+#: patients/templates/patients/detail.html:62
+#: patients/templates/patients/detail.html:104
+#: patients/templates/patients/detail.html:145
+#: patients/templates/patients/detail.html:186
+#: patients/templates/patients/detail.html:227
 msgid "Doctor"
 msgstr "Médecin"
 
 #: core/templates/core/dashboard.html:122
+#: patients/templates/patients/detail.html:62
 msgid "Status"
 msgstr "Statut"
 
@@ -162,9 +173,255 @@ msgid "Quick actions"
 msgstr "Actions rapides"
 
 #: core/templates/core/dashboard.html:168
+#: patients/templates/patients/add.html:90
+#: patients/templates/patients/list.html:17
 msgid "Add patient"
 msgstr "Ajouter un patient"
 
 #: core/templates/core/dashboard.html:175
 msgid "New appointment"
 msgstr "Nouveau rendez-vous"
+
+#: patients/forms.py:30
+msgid "Date of birth"
+msgstr "Date de naissance"
+
+#: patients/forms.py:34
+msgid "date"
+msgstr "date"
+
+#: patients/forms.py:43
+msgid "Approximate age (if DOB unknown)"
+msgstr "Âge approximatif (si date de naissance inconnue)"
+
+#: patients/forms.py:47
+msgid "e.g. 45"
+msgstr "par exemple 45"
+
+#: patients/forms.py:54 patients/templates/patients/list.html:28
+msgid "Phone"
+msgstr "Téléphone"
+
+#: patients/forms.py:58
+msgid "+213 555 12 34 56"
+msgstr "+213 555 12 34 56"
+
+#: patients/forms.py:65
+msgid "Address"
+msgstr "Adresse"
+
+#: patients/forms.py:70
+msgid "Enter patient address"
+msgstr "Entrez l'adresse du patient"
+
+#: patients/forms.py:78 patients/templates/patients/list.html:30
+msgid "Reason for visit"
+msgstr "Motif de la visite"
+
+#: patients/forms.py:82
+msgid "e.g. follow-up, chest pain, prescription renewal"
+msgstr "ex. suivi, douleur thoracique, renouvellement d'ordonnance"
+
+#: patients/templates/patients/add.html:4
+#: patients/templates/patients/add.html:8
+msgid "Add Patient"
+msgstr "Ajouter un patient"
+
+#: patients/templates/patients/add.html:94
+#: patients/templates/patients/edit.html:62
+msgid "Cancel"
+msgstr "Annuler"
+
+#: patients/templates/patients/detail.html:12
+#, python-format
+msgid "Age %(age)s · "
+msgstr "Âge %(age)s ·"
+
+#: patients/templates/patients/detail.html:18
+#: patients/templates/patients/edit.html:5
+msgid "Edit patient"
+msgstr "Modifier le patient"
+
+#: patients/templates/patients/detail.html:19
+msgid "← Back to patients"
+msgstr "← Retour aux patients"
+
+#: patients/templates/patients/detail.html:28
+msgid "Prescriptions"
+msgstr "Ordonnances"
+
+#: patients/templates/patients/detail.html:31
+msgid "Doctor Notes"
+msgstr "Notes médicales"
+
+#: patients/templates/patients/detail.html:34
+msgid "Procedure Reports"
+msgstr "Comptes rendus d'actes"
+
+#: patients/templates/patients/detail.html:37
+msgid "Labwork Demands"
+msgstr "Demandes d'analyses"
+
+#: patients/templates/patients/detail.html:46
+msgid "Search appointment type"
+msgstr "Rechercher un type de rendez-vous"
+
+#: patients/templates/patients/detail.html:50
+#: patients/templates/patients/detail.html:93
+#: patients/templates/patients/detail.html:134
+#: patients/templates/patients/detail.html:175
+#: patients/templates/patients/detail.html:216
+msgid "Go"
+msgstr "Aller"
+
+#: patients/templates/patients/detail.html:54
+msgid "Add walk-in"
+msgstr "Ajouter une visite sans rendez-vous"
+
+#: patients/templates/patients/detail.html:55
+msgid "Book appointment"
+msgstr "Prendre un rendez-vous"
+
+#: patients/templates/patients/detail.html:62
+#: patients/templates/patients/detail.html:104
+#: patients/templates/patients/detail.html:145
+#: patients/templates/patients/detail.html:186
+#: patients/templates/patients/detail.html:227
+msgid "Date"
+msgstr "Date"
+
+#: patients/templates/patients/detail.html:62
+msgid "Type"
+msgstr "Type"
+
+#: patients/templates/patients/detail.html:72
+#: patients/templates/patients/detail.html:113
+#: patients/templates/patients/detail.html:154
+#: patients/templates/patients/detail.html:195
+#: patients/templates/patients/detail.html:236
+#: patients/templates/patients/edit.html:4
+msgid "Edit"
+msgstr "Modifier"
+
+#: patients/templates/patients/detail.html:80
+msgid "No appointments match."
+msgstr "Aucun rendez-vous correspondant."
+
+#: patients/templates/patients/detail.html:89
+msgid "Search medication or notes"
+msgstr "Rechercher un médicament ou des notes"
+
+#: patients/templates/patients/detail.html:97
+msgid "New prescription"
+msgstr "Nouvelle ordonnance"
+
+#: patients/templates/patients/detail.html:111
+#: patients/templates/patients/detail.html:152
+#: patients/templates/patients/detail.html:193
+#: patients/templates/patients/detail.html:234
+msgid "Print"
+msgstr "Imprimer"
+
+#: patients/templates/patients/detail.html:121
+msgid "No prescriptions match."
+msgstr "Aucune ordonnance correspondante."
+
+#: patients/templates/patients/detail.html:130
+msgid "Search note content"
+msgstr "Rechercher dans le contenu des notes"
+
+#: patients/templates/patients/detail.html:138
+msgid "New note"
+msgstr "Nouvelle note"
+
+#: patients/templates/patients/detail.html:162
+msgid "No notes match."
+msgstr "Aucune note correspondante."
+
+#: patients/templates/patients/detail.html:171
+msgid "Search procedure or findings"
+msgstr "Rechercher un acte ou des constatations"
+
+#: patients/templates/patients/detail.html:179
+msgid "New report"
+msgstr "Nouveau compte rendu"
+
+#: patients/templates/patients/detail.html:203
+msgid "No procedure reports match."
+msgstr "Aucun compte rendu correspondant."
+
+#: patients/templates/patients/detail.html:212
+msgid "Search test or indication"
+msgstr "Rechercher un examen ou une indication"
+
+#: patients/templates/patients/detail.html:220
+msgid "New demand"
+msgstr "Nouvelle demande"
+
+#: patients/templates/patients/detail.html:244
+msgid "No labwork demands match."
+msgstr "Aucune demande d'analyses correspondante."
+
+#: patients/templates/patients/edit.html:61
+msgid "Save changes"
+msgstr "Enregistrer les modifications"
+
+#: patients/templates/patients/list.html:27
+msgid "Name"
+msgstr "Nom"
+
+#: patients/templates/patients/list.html:29
+msgid "Age"
+msgstr "Âge"
+
+#: patients/templates/patients/list.html:31
+msgid "Patient Details"
+msgstr "Détails du patient"
+
+#: patients/templates/patients/list.html:43
+msgid "View"
+msgstr "Voir"
+
+#: patients/templates/patients/list.html:52
+msgid "No patients yet."
+msgstr "Aucun patients pour le moment."
+
+#: patients/views.py:36
+msgid "You must belong to a clinic to manage patients."
+msgstr "vous devez appartenir à une clinique pour gérer les patients."
+
+#: patients/views.py:72
+msgid "Patient added successfully"
+msgstr "Patient ajouté avec succès"
+
+#: patients/views.py:206
+msgid "Prescription created"
+msgstr "Ordonnance créée"
+
+#: patients/views.py:250
+msgid "Prescription updated"
+msgstr "Ordonnance mise à jour"
+
+#: patients/views.py:285
+msgid "Note saved"
+msgstr "Note enregistrée"
+
+#: patients/views.py:311
+msgid "Note updated"
+msgstr "Note mise à jour"
+
+#: patients/views.py:342
+msgid "Procedure report created"
+msgstr "Compte rendu créé"
+
+#: patients/views.py:379
+msgid "Procedure report updated"
+msgstr "Compte rendu mis à jour"
+
+#: patients/views.py:420
+msgid "Labwork demand created"
+msgstr "Demande d'analyses créée"
+
+#: patients/views.py:461
+msgid "Labwork demand updated"
+msgstr "Demande d'analyses mise à jou"

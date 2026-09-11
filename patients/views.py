@@ -33,7 +33,7 @@ def _require_clinic(request):
     clinic = request.user.clinic
 
     if clinic is None:
-        raise PermissionDenied(_(_("you must belong to a clinic to manage patients.")))
+        raise PermissionDenied(_(_("You must belong to a clinic to manage patients.")))
 
     return clinic
 
