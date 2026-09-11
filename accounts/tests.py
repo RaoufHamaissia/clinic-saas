@@ -87,6 +87,7 @@ class ProfileEditTests(TestCase):
             "last_name": "Doe",
             "email": "doctor@example.com",
             "phone": "+213555123456",
+            "language": "en",
         })
 
         self.assertRedirects(response, reverse("accounts:edit_profile"))
@@ -106,11 +107,11 @@ class ProfileEditTests(TestCase):
             "last_name": "Doe",
             "email": "taken@example.com",
             "phone": "",
+            "language": "en",
         })
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.context["profile_form"].is_valid())
-
     def test_can_change_password(self):
         self.client.login(email="doctor@example.com", password="StrongPassword123!")
 

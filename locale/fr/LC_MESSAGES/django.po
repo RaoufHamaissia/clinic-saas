@@ -1,0 +1,170 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-11 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+#: accounts/forms.py:41
+msgid "First name"
+msgstr "Prénom"
+
+#: accounts/forms.py:42
+msgid "Last name"
+msgstr "Nom"
+
+#: accounts/forms.py:43
+msgid "Email"
+msgstr "E-mail"
+
+#: accounts/forms.py:44
+msgid "Language"
+msgstr "Langue"
+
+#: accounts/templates/accounts/edit_profile.html:4
+#: core/templates/core/base.html:66
+msgid "My Profile"
+msgstr "Mon profil"
+
+#: accounts/templates/accounts/login.html:13
+msgid "Login"
+msgstr "Connexion"
+
+#: accounts/templates/accounts/login.html:55
+msgid "Sign in to your clinic"
+msgstr "Connectez-vous à votre clinique"
+
+#: accounts/templates/accounts/login.html:104
+msgid "Sign in"
+msgstr "Se connecter"
+
+#: accounts/templates/accounts/login.html:112
+msgid "Don't have a clinic yet?"
+msgstr "Vous n'avez pas encore de clinique ?"
+
+#: accounts/templates/accounts/login.html:119
+msgid "Create one"
+msgstr "Créer une clinique"
+
+#: accounts/views.py:27
+msgid "Your account is inactive."
+msgstr "Votre compte est inactif."
+
+#: accounts/views.py:40
+msgid "Invalid email or password."
+msgstr "E-mail ou mot de passe invalide."
+
+#: accounts/views.py:53
+msgid "You have been logged out successfully"
+msgstr "Vous avez été déconnecté avec succès"
+
+#: accounts/views.py:67
+msgid "Profile updated successfully"
+msgstr "Profil mis à jour avec succès"
+
+#: accounts/views.py:77
+msgid "Password changed successfully"
+msgstr "Mot de passe modifié avec succès"
+
+#: core/templates/core/base.html:61 core/templates/core/base.html:130
+#: core/templates/core/dashboard.html:4 core/templates/core/dashboard.html:8
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#: core/templates/core/base.html:71 core/templates/core/dashboard.html:32
+msgid "Patients"
+msgstr "Patients"
+
+#: core/templates/core/base.html:76
+msgid "Appointments"
+msgstr "Rendez-vous"
+
+#: core/templates/core/base.html:81 core/templates/core/dashboard.html:68
+msgid "Doctors"
+msgstr "Médecins"
+
+#: core/templates/core/base.html:86 core/templates/core/dashboard.html:88
+msgid "Secretaries"
+msgstr "Secrétaires"
+
+#: core/templates/core/base.html:93
+msgid "My Document Profile"
+msgstr "Mon profil de document"
+
+#: core/templates/core/base.html:100
+msgid "Audit Log"
+msgstr "Journal d'audit"
+
+#: core/templates/core/base.html:108
+msgid "Billing"
+msgstr "Facturation"
+
+#: core/templates/core/base.html:115
+msgid "Settings"
+msgstr "Paramètres"
+
+#: core/templates/core/base.html:142
+msgid "Profile"
+msgstr "Profil"
+
+#: core/templates/core/base.html:151
+msgid "Logout"
+msgstr "Déconnexion"
+
+#: core/templates/core/dashboard.html:14
+#, python-format
+msgid "Welcome %(name)s"
+msgstr "Bienvenue %(name)s"
+
+#: core/templates/core/dashboard.html:18
+#, python-format
+msgid "Here's what's happening in %(clinic_name)s."
+msgstr "Voici ce qui se passe à %(clinic_name)s."
+
+#: core/templates/core/dashboard.html:50 core/templates/core/dashboard.html:112
+msgid "Today's appointments"
+msgstr "Rendez-vous du jour"
+
+#: core/templates/core/dashboard.html:119
+msgid "Time"
+msgstr "Heure"
+
+#: core/templates/core/dashboard.html:120
+msgid "Patient"
+msgstr "Patient"
+
+#: core/templates/core/dashboard.html:121
+msgid "Doctor"
+msgstr "Médecin"
+
+#: core/templates/core/dashboard.html:122
+msgid "Status"
+msgstr "Statut"
+
+#: core/templates/core/dashboard.html:142
+msgid "No appointments scheduled for today."
+msgstr "Aucun rendez-vous prévu aujourd'hui."
+
+#: core/templates/core/dashboard.html:159
+msgid "Quick actions"
+msgstr "Actions rapides"
+
+#: core/templates/core/dashboard.html:168
+msgid "Add patient"
+msgstr "Ajouter un patient"
+
+#: core/templates/core/dashboard.html:175
+msgid "New appointment"
+msgstr "Nouveau rendez-vous"
