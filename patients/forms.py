@@ -1,40 +1,37 @@
-from logging import PlaceHolder
-from turtle import textinput
-
 from django import forms
-from django.forms.widgets import TextInput
 from phonenumber_field.formfields import PhoneNumberField
+from django.utils.translation import gettext_lazy as _
 
 class PatientForm(forms.Form):
     first_name = forms.CharField( #type:ignore
         max_length=150,
-        label="First name",
+        label=_("First name"),
         widget=forms.TextInput(
                          attrs={
                                "class": "form-control",
-                                "placeholder": "First name",
+                                "placeholder": _("First name"),
                                 }
                             )
     )
     
     last_name = forms.CharField(
         max_length=150,
-        label="Last name",
+        label=_("Last name"),
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Last name",
+                "placeholder": _("Last name"),
             }
         )
     )
 
     date_of_birth = forms.DateField(
         required=False,
-        label="Date of birth",
+        label=_("Date of birth"),
         widget=forms.DateInput(
             attrs={
                 "class": "form-control",
-                "type": "date",
+                "type": _("date"),
             }
         )
     )
@@ -43,34 +40,34 @@ class PatientForm(forms.Form):
         required=False,
         min_value=0,
         max_value=130,
-        label="Approximate age (if DOB unknown)",
+        label=_("Approximate age (if DOB unknown)"),
         widget=forms.NumberInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "e.g. 45",
+                "placeholder": _("e.g. 45"),
             }
         )
     )
 
     phone = PhoneNumberField(  #type:ignore
         required=False,
-        label="Phone",
+        label=_("Phone"),
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "+213 555 12 34 56",
+                "placeholder": _("+213 555 12 34 56"),
             }
         )
     )
 
     address = forms.CharField(
         required=False,
-        label="Address",
+        label=_("Address"),
         widget=forms.Textarea(
             attrs={
                 "class": "form-control",
                 "rows": 2,
-                "placeholder": "Enter patient address",
+                "placeholder": _("Enter patient address"),
             }
         )
     )
@@ -78,11 +75,11 @@ class PatientForm(forms.Form):
     reason_for_visit = forms.CharField(
         required=False,
         max_length=255,
-        label="Reason for visit",
+        label=_("Reason for visit"),
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "e.g. follow-up, chest pain, prescription renewal",
+                "placeholder": _("e.g. follow-up, chest pain, prescription renewal"),
             }
         )
     )
