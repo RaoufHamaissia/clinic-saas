@@ -21,6 +21,7 @@ from .services import PatientService
 from .models import Patient
 
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 # Create your views here.
 
@@ -32,7 +33,7 @@ def _require_clinic(request):
     clinic = request.user.clinic
 
     if clinic is None:
-        raise PermissionDenied("you must belong to a clinic to manage patients.")
+        raise PermissionDenied(_(_("you must belong to a clinic to manage patients.")))
 
     return clinic
 
@@ -68,7 +69,7 @@ def add_patient(request):
             except ValueError as e:
                 form.add_error(None, str(e))
             else:
-                messages.success(request, "Patient added successfully")
+                messages.success(request, _("Patient added successfully"))
                 return redirect("patients:list")
 
     else:
@@ -202,7 +203,7 @@ def add_prescription(request, patient_id):
                 patient_name_override=form.cleaned_data["patient_name_override"],
             )
 
-            messages.success(request, "Prescription created")
+            messages.success(request, _("Prescription created"))
             return redirect("records:prescription_print", pk=prescription.pk)
 
     else:
@@ -246,7 +247,7 @@ def edit_prescription(request, patient_id, pk):
             except ValueError as e:
                 form.add_error(None, str(e))
             else:
-                messages.success(request, "Prescription updated")
+                messages.success(request, _("Prescription updated"))
                 return redirect("records:prescription_print", pk=prescription.pk)
 
     else:
@@ -281,7 +282,7 @@ def add_note(request, patient_id):
                 content=form.cleaned_data["content"],
             )
 
-            messages.success(request, "Note saved")
+            messages.success(request, _("Note saved"))
             return redirect("records:note_print", pk=note.pk)
 
     else:
@@ -307,7 +308,7 @@ def edit_note(request, patient_id, pk):
             except ValueError as e:
                 form.add_error(None, str(e))
             else:
-                messages.success(request, "Note updated")
+                messages.success(request, _("Note updated"))
                 return redirect("records:note_print", pk=note.pk)
 
     else:
@@ -338,7 +339,7 @@ def add_procedure_report(request, patient_id):
                 notes=form.cleaned_data["notes"], items=items,
             )
 
-            messages.success(request, "Procedure report created")
+            messages.success(request, _("Procedure report created"))
             return redirect("records:procedure_report_print", pk=report.pk)
 
     else:
@@ -375,7 +376,7 @@ def edit_procedure_report(request, patient_id, pk):
             except ValueError as e:
                 form.add_error(None, str(e))
             else:
-                messages.success(request, "Procedure report updated")
+                messages.success(request, _("Procedure report updated"))
                 return redirect("records:procedure_report_print", pk=report.pk)
 
     else:
@@ -416,7 +417,7 @@ def add_labwork_demand(request, patient_id):
                 clinic=clinic, patient=patient, doctor=form.cleaned_data["doctor"], items=items,
             )
 
-            messages.success(request, "Labwork demand created")
+            messages.success(request, _("Labwork demand created"))
             return redirect("records:labwork_demand_print", pk=demand.pk)
 
     else:
@@ -457,7 +458,7 @@ def edit_labwork_demand(request, patient_id, pk):
             except ValueError as e:
                 form.add_error(None, str(e))
             else:
-                messages.success(request, "Labwork demand updated")
+                messages.success(request, _("Labwork demand updated"))
                 return redirect("records:labwork_demand_print", pk=demand.pk)
 
     else:
