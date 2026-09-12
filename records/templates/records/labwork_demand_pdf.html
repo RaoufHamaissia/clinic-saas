@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,14 +32,14 @@
 
     <div class="meta">
         <div>
-            <strong>Patient:</strong> {{ demand.patient }}<br>
+            <strong>{% trans "Patient"%}:</strong> {{ demand.patient }}<br>
             {% if demand.patient.age %}<strong>Age:</strong> {{ demand.patient.age }}<br>{% endif %}
         </div>
-        <div><strong>Date:</strong> {{ demand.created_at|date:"Y-m-d" }}</div>
+        <div><strong>{%trans "Date"%}:</strong> {{ demand.created_at|date:"Y-m-d" }}</div>
     </div>
 
     <table>
-        <thead><tr><th>Test</th><th>Urgency</th><th>Clinical indication</th></tr></thead>
+        <thead><tr><th>{% trans "Test"%}</th><th>{% trans "Urgency"%}</th><th>{% trans "Clinical indication"%}</th></tr></thead>
         <tbody>
             {% for item in items %}
                 <tr>

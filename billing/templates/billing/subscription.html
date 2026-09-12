@@ -1,45 +1,51 @@
 
 {% extends "core/base.html" %}
+{% load i18n %}
 
-{% block title %}Billing | MediCore{% endblock title %}
-{% block page_title %}Subscription & Billing{% endblock page_title %}
+{% block title %}{% trans "Billing"%}{% endblock title %}
+{% block page_title %}{% trans "Subscription & Billing"%}{% endblock page_title %}
 
 {% block content %}
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
-            <h5 class="fw-bold mb-3">Current plan</h5> 
-            <a href="{% url 'billing:change_plan' %}" class="btn btn-sm btn-outline-primary">Change plan</a>
+            <h5 class="fw-bold mb-3">{% trans "Current plan"%}</h5> 
+            <a href="{% url 'billing:change_plan' %}" class="btn btn-sm btn-outline-primary">{% trans "Change plan"%}</a>
 
             {% if subscription %}
-                <p class="mb-1"><strong>Plan:</strong> {{ subscription.get_plan_display }}</p>
-                <p class="mb-1"><strong>Status:</strong> {{ subscription.get_status_display }}</p>
+                <p class="mb-1"><strong>{% trans "Plan"%}:</strong> {{ subscription.get_plan_display }}</p>
+                <p class="mb-1"><strong>{% trans "Status"%}:</strong> {{ subscription.get_status_display }}</p>
 
                 {% if subscription.plan == "trial" %}
-                    <p class="mb-1"><strong>Trial ends:</strong> {{ subscription.trial_ends_at|date:"Y-m-d H:i" }}</p>
+                    <p class="mb-1"><strong>{% trans "Trial ends"%}:</strong> {{ subscription.trial_ends_at|date:"Y-m-d H:i" }}</p>
                     {% if trial_expired %}
                         <div class="alert alert-warning mt-2 mb-0">
-                            Your trial has ended. Contact us to upgrade to a paid plan.
+                            {% trans "Your trial has ended. Contact us to upgrade to a paid plan."%}
                         </div>
                     {% endif %}
                 {% endif %}
             {% else %}
-                <p class="text-muted mb-0">No subscription found.</p>
+                <p class="text-muted mb-0">{% trans "No subscription found."%}</p>
             {% endif %}
         </div>
     </div>
     <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">Plan change requests</h5>
+            <h5 class="fw-bold mb-0">{% trans "Plan change requests"%}</h5>
             <a href="{% url 'billing:request_plan_change' %}" class="btn btn-sm btn-primary">
-                Request a plan change (bank transfer / CCP)
+                {% trans "Request a plan change (bank transfer / CCP)"%}
             </a>
         </div>
 
         {% if plan_requests %}
             <table class="table table-sm align-middle mb-0">
                 <thead>
-                    <tr><th>Date</th><th>Requested plan</th><th>Method</th><th>Status</th></tr>
+                    <tr>
+                        <th>{% trans "Date"%}</th>
+                        <th>{% trans "Requested plan"%}</th>
+                        <th>{% trans "Method"%}</th>
+                        <th>{% trans "Status"%}</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for req in plan_requests %}
@@ -49,11 +55,11 @@
                             <td>{{ req.get_payment_method_display }}</td>
                             <td>
                                 {% if req.status == "pending" %}
-                                    <span class="badge bg-warning text-dark">Pending review</span>
+                                    <span class="badge bg-warning text-dark">{% trans "Pending review"%}</span>
                                 {% elif req.status == "approved" %}
-                                    <span class="badge bg-success">Approved</span>
+                                    <span class="badge bg-success">{% trans "Approved"%}</span>
                                 {% else %}
-                                    <span class="badge bg-danger">Rejected{% if req.rejection_reason %}: {{ req.rejection_reason }}{% endif %}</span>
+                                    <span class="badge bg-danger">{% trans "Rejected"%}{% if req.rejection_reason %}: {{ req.rejection_reason }}{% endif %}</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -61,19 +67,19 @@
                 </tbody>
             </table>
         {% else %}
-            <p class="text-muted mb-0">No plan change requests yet.</p>
+            <p class="text-muted mb-0">{% trans "No plan change requests yet."%}</p>
         {% endif %}
     </div>
 </div>
 
     <div class="card border-0 shadow-sm">
         <div class="card-body">
-            <h5 class="fw-bold mb-3">Invoices</h5>
+            <h5 class="fw-bold mb-3">{% trans "Invoices"%}</h5>
 
             {% if invoices %}
                 <table class="table align-middle">
                     <thead>
-                        <tr><th>Period</th><th>Amount</th><th>Status</th><th></th></tr>
+                        <tr><th>{% trans "Period"%}</th><th>{% trans "Amount"%}</th><th>{% trans "Status"%}</th><th></th></tr>
                     </thead>
                     <tbody>
                         {% for invoice in invoices %}
@@ -83,7 +89,7 @@
                                 <td><span class="badge bg-info text-dark">{{ invoice.get_status_display }}</span></td>
                                 <td>
                                     {% if invoice.status == "draft" or invoice.status == "issued" %}
-                                        <a href="{% url 'billing:pay_invoice' invoice.pk %}" class="btn btn-sm btn-primary">Pay now</a>
+                                        <a href="{% url 'billing:pay_invoice' invoice.pk %}" class="btn btn-sm btn-primary">{% trans "Pay now"%}</a>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -91,7 +97,7 @@
                     </tbody>
                 </table>
             {% else %}
-                <p class="text-muted mb-0">No invoices yet.</p>
+                <p class="text-muted mb-0">{% trans "No invoices yet."%}</p>
             {% endif %}
         </div>
     </div>

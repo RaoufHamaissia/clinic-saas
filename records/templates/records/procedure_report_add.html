@@ -5,8 +5,8 @@
 {% block page_title %}{% trans "New procedure report"%}{% endblock page_title %}
 
 {% block content %}
-    {% url 'records:procedure_report_list' as back_url %}
-    {% include "core/partials/back_button.html" with back_url=back_url back_label="{% trans "Back to reports"%}" %}
+    {% url 'patients:detail' patient.id as back_url %}
+    {% include "core/partials/back_button.html" with back_url=back_url back_label="Back to patient"%}
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">

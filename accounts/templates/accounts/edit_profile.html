@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load i18n %}
-{% block title %}{% trans "My Profile" %} | MediCore{% endblock title %}
+{% block title %}{% trans "My Profile" %}{% endblock title %}
 {% block page_title %}{% trans "My Profile" %}{% endblock page_title %}
 
 {% block content %}
@@ -9,7 +9,7 @@
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3">Profile information</h5>
+                    <h5 class="fw-bold mb-3">{% trans "Profile information"%}</h5>
 
                     <form method="post">
                         {% csrf_token %}
@@ -55,7 +55,7 @@
                         </div>
 
                         <button type="submit" name="update_profile" class="btn btn-primary">
-                            Save changes
+                            {% trans "Save changes"%}
                         </button>
                     </form>
                 </div>
@@ -65,7 +65,7 @@
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3">Change password</h5>
+                    <h5 class="fw-bold mb-3">{% trans "Change password"%}</h5>
 
                     <form method="post">
                         {% csrf_token %}
@@ -95,7 +95,7 @@
                         </div>
 
                         <button type="submit" name="change_password" class="btn btn-outline-primary">
-                            Change password
+                            {% trans "Change password"%}
                         </button>
                     </form>
                 </div>

@@ -5,8 +5,8 @@
 {% block page_title %}{% trans "My Document Profile" %}{% endblock page_title %}
 
 {% block content %}
-    {% url '	core:dashboard' as back_url %}
-    {% include "core/partials/back_button.html" with back_url=back_url back_label="{% trans "Back to dashboard"%}" %}
+    {% url 'core:dashboard' as back_url %}
+    {% include "core/partials/back_button.html" with back_url=back_url back_label="Back to dashboard" %}
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
