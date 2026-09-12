@@ -262,3 +262,51 @@ class BillingAuditSignalTests(TestCase):
         self.assertTrue(
             AuditLog.objects.filter(action="create", content_type__model="visitrecord").exists()
         )
+
+
+class LanguageSwitcherTests(TestCase):
+
+    def setUp(self):
+        self.clinic = Clinic.objects.create(name="Clinic A")
+        self.user = User.objects.create_user( #type:ignore
+            email="staff@example.com", password="StrongPassword123!", clinic=self.clinic
+        )
+
+    def test_authenticated_user_switch_persists_to_profile(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("core:set_language"), {
+            "language": "fr", "next": reverse("core:dashboard"),
+        })
+
+        self.assertRedirects(response, reverse("core:dashboard"))
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.language, "fr")
+
+    def test_anonymous_switch_uses_session(self):
+        response = self.client.post(reverse("core:set_language"), {
+            "language": "fr", "next": reverse("landing"),
+        })
+
+        self.assertRedirects(response, reverse("landing"))
+        self.assertEqual(self.client.session.get("language"), "fr")
+
+    def test_invalid_language_is_ignored(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        self.client.post(reverse("core:set_language"), {
+            "language": "not-a-real-lang", "next": reverse("core:dashboard"),
+        })
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.language, "en")  # unchanged, still default
+
+    def test_open_redirect_is_blocked(self):
+        self.client.login(email="staff@example.com", password="StrongPassword123!")
+
+        response = self.client.post(reverse("core:set_language"), {
+            "language": "fr", "next": "https://evil.com/",
+        })
+
+        self.assertEqual(response.url, "/")  # falls back, doesn't redirect off-site #type:ignore
