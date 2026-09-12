@@ -24,6 +24,14 @@
 
     <nav class="navbar navbar-expand bg-white shadow-sm px-4">
         <span class="navbar-brand fw-bold">MediCore</span>
+        <form method="post" action="{% url 'core:set_language' %}" class="d-flex align-items-center me-3">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <select name="language" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                <option value="en" {% if request.LANGUAGE_CODE == "en" %}selected{% endif %}>English</option>
+                <option value="fr" {% if request.LANGUAGE_CODE == "fr" %}selected{% endif %}>Français</option>
+            </select>
+        </form>
         <div class="ms-auto d-flex gap-2">
             <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">Sign in</a>
             <a href="{% url 'clinics:register' %}" class="btn btn-primary">Start free trial</a>

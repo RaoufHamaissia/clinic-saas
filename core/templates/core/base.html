@@ -54,6 +54,7 @@
             </div>
 
             <nav>
+                
                 <ul class="nav flex-column">
                     
                     <li class="nav-item">
@@ -124,6 +125,14 @@
           <main class="main-content flex-grow-1">
                 <!-- Top navbar -->
                  <nav class="navbar bg-white boarder-bottom px-4">
+                    <form method="post" action="{% url 'core:set_language' %}" class="d-flex align-items-center me-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <select name="language" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                            <option value="en" {% if request.LANGUAGE_CODE == "en" %}selected{% endif %}>English</option>
+                            <option value="fr" {% if request.LANGUAGE_CODE == "fr" %}selected{% endif %}>Français</option>
+                        </select>
+                    </form>
                     <div>
                         <span class="fw-semibold">
                             {% block page_title %}
@@ -131,6 +140,7 @@
                             {% endblock page_title %}
                         </span>
                     </div>
+
 
                     <div class="dropdown">
                         <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
