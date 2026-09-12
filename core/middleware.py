@@ -73,11 +73,10 @@ class AuditTrailMiddleware:
 class UserLanguageMiddleware:
     """
     Activates the translation for the logged-in user's saved language
-    preference (accounts.User.language), rather than URL-prefix-based
-    i18n_patterns — fits this app's usage pattern, since nearly every
-    real user is authenticated, not an anonymous browser being routed.
-    Anonymous requests (the landing page) fall back to the browser's
-    Accept-Language header via Django's standard detection.
+    preference (accounts.User.language). For anonymous requests, falls
+    back to a session-stored choice (set via the top-nav language
+    switcher on pages like the landing page), then finally to the
+    browser's Accept-Language header.
     """
 
     def __init__(self, get_response):
@@ -89,6 +88,9 @@ class UserLanguageMiddleware:
 
         if user and user.is_authenticated and getattr(user, "language", None):
             language = user.language
+
+        if not language:
+            language = request.session.get("language")
 
         if not language:
             language = translation.get_language_from_request(request)
