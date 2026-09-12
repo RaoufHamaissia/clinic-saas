@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from .models import PlanChangeRequest
 
@@ -8,11 +9,11 @@ class PlanChangeRequestForm(forms.ModelForm):
         model = PlanChangeRequest
         fields = ["requested_plan", "payment_method", "proof_file", "reference_note"]
         widgets = {
-            "requested_plan": forms.Select(attrs={"class": "form-select"}),
-            "payment_method": forms.Select(attrs={"class": "form-select"}),
-            "proof_file": forms.ClearableFileInput(attrs={"class": "form-control"}),
-            "reference_note": forms.TextInput(attrs={
+            _("requested_plan"): forms.Select(attrs={"class": "form-select"}),
+            _("payment_method"): forms.Select(attrs={"class": "form-select"}),
+            _("proof_file"): forms.ClearableFileInput(attrs={"class": "form-control"}),
+            _("reference_note"): forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "e.g. transfer reference number (optional)"
+                "placeholder": _("e.g. transfer reference number (optional)")
             }),
         }
