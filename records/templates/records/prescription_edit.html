@@ -1,11 +1,13 @@
 {% extends "core/base.html" %}
-{% block title %}Edit Prescription | MediCore{% endblock title %}
-{% block page_title %}Edit prescription{% endblock page_title %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Prescription"%}{% endblock title %}
+{% block page_title %}{% trans "Edit prescription"%}{% endblock page_title %}
 
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Edit prescription for {{ patient }}</h4>
-        <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-outline-secondary">← Back to {{ patient }}</a>
+        <h4 class="mb-0">{% trans "Edit prescription for"%} {{ patient }}</h4>
+        <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "← Back to "%}{{ patient }}</a>
     </div>
 
     <div class="card border-0 shadow-sm">
@@ -31,7 +33,7 @@
                     {% endfor %}
                 </div>
 
-                <h5 class="fw-semibold mb-3">Medications</h5>
+                <h5 class="fw-semibold mb-3">{% trans "Medications"%}</h5>
 
                 {% for item_form in formset %}
                     <div class="row g-2 mb-2 align-items-start border-bottom pb-2">
@@ -48,8 +50,8 @@
                     {{ form.notes }}
                 </div>
 
-                <button type="submit" class="btn btn-primary">Save changes</button>
-                <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">{% trans "Save changes"%}</button>
+                <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-outline-secondary">{% trans "Cancel"%}</a>
             </form>
         </div>
     </div>

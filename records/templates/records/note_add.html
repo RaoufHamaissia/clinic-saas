@@ -1,11 +1,12 @@
 {% extends "core/base.html" %}
+{% load i18n %}
 
-{% block title %}New Note | MediCore{% endblock title %}
-{% block page_title %}New doctor note{% endblock page_title %}
+{% block title %}{% trans "New Note" %}{% endblock title %}
+{% block page_title %}{% trans "New doctor note" %}{% endblock page_title %}
 
 {% block content %}
     {% url '	records:note_list' as back_url %}
-    {% include "core/partials/back_button.html" with back_url=back_url back_label="Back to notes" %}
+    {% include "core/partials/back_button.html" with back_url=back_url back_label="{% trans "Back to notes"%}" %}
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
@@ -30,8 +31,8 @@
                     {% endfor %}
                 </div>
 
-                <button type="submit" class="btn btn-primary">Save & print</button>
-                <a href="{% url 'patients:detail' patient.pk  %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">{% trans "Save & print" %}</button>
+                <a href="{% url 'patients:detail' patient.pk  %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
             </form>
         </div>
     </div>

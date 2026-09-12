@@ -1,10 +1,12 @@
 {% extends "core/base.html" %}
-{% block title %}New Procedure Report | MediCore{% endblock title %}
-{% block page_title %}New procedure report{% endblock page_title %}
+{% load i18n %}
+
+{% block title %}{% trans "New Procedure Report"%}{% endblock title %}
+{% block page_title %}{% trans "New procedure report"%}{% endblock page_title %}
 
 {% block content %}
     {% url 'records:procedure_report_list' as back_url %}
-    {% include "core/partials/back_button.html" with back_url=back_url back_label="Back to reports" %}
+    {% include "core/partials/back_button.html" with back_url=back_url back_label="{% trans "Back to reports"%}" %}
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
@@ -17,7 +19,7 @@
                     {{ form.doctor }}
                 </div>
 
-                <h5 class="fw-semibold mb-3">Procedures</h5>
+                <h5 class="fw-semibold mb-3">{% trans "Procedures"%}</h5>
 
                 {% for item_form in formset %}
                     <div class="row g-2 mb-2 border-bottom pb-2">
@@ -31,8 +33,8 @@
                     {{ form.notes }}
                 </div>
 
-                <button type="submit" class="btn btn-primary">Create & print</button>
-                <a href="{% url 'patients:detail' patient.pk  %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">{% trans "Create & print"%}</button>
+                <a href="{% url 'patients:detail' patient.pk  %}" class="btn btn-outline-secondary">{% trans "Cancel"%}</a>
             </form>
         </div>
     </div>

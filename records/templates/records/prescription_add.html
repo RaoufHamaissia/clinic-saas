@@ -1,11 +1,12 @@
 {% extends "core/base.html" %}
+{% load i18n %}
 
-{% block title %}New Prescription | MediCore{% endblock title %}
-{% block page_title %}New prescription{% endblock page_title %}
+{% block title %}{% trans "New Prescription"%}{% endblock title %}
+{% block page_title %}{% trans "New prescription"%}{% endblock page_title %}
 
 {% block content %}
     {% url 'records:prescription_list' as back_url %}
-    {% include "core/partials/back_button.html" with back_url=back_url back_label="Back to prescriptions" %}
+    {% include "core/partials/back_button.html" with back_url=back_url back_label="{% trans "Back to prescriptions"%}" %}
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
@@ -28,7 +29,7 @@
                     {% endfor %}
                 </div>
 
-                <h5 class="fw-semibold mb-3">Medications</h5>
+                <h5 class="fw-semibold mb-3">{% trans "Medications"%}</h5>
 
                 {% for item_form in formset %}
                     <div class="row g-2 mb-2 align-items-start border-bottom pb-2">
@@ -46,10 +47,10 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary">
-                    Create & print
+                    {% trans "Create & print"%}
                 </button>
                 <a href="{% url 'patients:detail' patient.pk  %}" class="btn btn-outline-secondary">
-                    Cancel
+                    {% trans "Cancel"%}
                 </a>
             </form>
         </div>

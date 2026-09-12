@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django.utils.translation import gettext as _
 
 from .forms import (
     PrescriptionForm, PrescriptionItemFormSet, DoctorNoteForm,
@@ -38,7 +39,7 @@ def _require_clinic(request):
     clinic = request.user.clinic
 
     if clinic is None:
-        raise PermissionDenied("You must belong to a clinic to manage medical records.")
+        raise PermissionDenied(_("You must belong to a clinic to manage medical records."))
 
     return clinic
 
@@ -167,20 +168,20 @@ def labwork_demand_print(request, pk):
 @login_required
 def edit_document_profile(request):
     if request.user.role != User.Role.DOCTOR:
-        raise PermissionDenied("Only doctors have a document profile.")
+        raise PermissionDenied(_("Only doctors have a document profile.")) 
 
     doctor = getattr(request.user, "doctor_profile", None)
     if doctor is None:
-        raise PermissionDenied("Your account has no doctor profile.")
+        raise PermissionDenied(_("Your account has no doctor profile."))
 
-    document_profile, _ = DoctorDocumentProfile.objects.get_or_create(doctor=doctor)
+    document_profile, __ = DoctorDocumentProfile.objects.get_or_create(doctor=doctor)
 
     if request.method == "POST":
         form = DoctorDocumentProfileForm(request.POST, request.FILES, instance=document_profile)
 
         if form.is_valid():
             form.save()
-            messages.success(request, "Document profile updated")
+            messages.success(request, _("Document profile updated"))
             return redirect("records:edit_document_profile")
 
     else: 
