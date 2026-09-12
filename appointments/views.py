@@ -7,6 +7,7 @@ from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext as _
 
 from .forms import AppointmentForm, WalkInForm, AppointmentTypeService, AppointmentEditForm
 from .services import AppointmentService
@@ -25,7 +26,7 @@ def _require_clinic(request):
     clinic = request.user.clinic
 
     if clinic is None:
-        raise PermissionDenied("You must belong to a clinic to manage appointments.")
+        raise PermissionDenied(_("You must belong to a clinic to manage appointments."))
 
     return clinic
 
@@ -65,7 +66,7 @@ def add_appointment(request):
                 created_by=request.user,
             )
 
-            messages.success(request, "Appointment booked successfully")
+            messages.success(request, _("Appointment booked successfully"))
 
             return redirect(next_url or "appointments:day")
 
@@ -98,7 +99,7 @@ def add_walk_in(request):
                 created_by=request.user,
             )
 
-            messages.success(request, "Walk-in added to today's list")
+            messages.success(request, _("Walk-in added to today's list"))
 
             return redirect(next_url or "appointments:day")
 
@@ -126,9 +127,9 @@ def update_status(request, pk):
     try:
         AppointmentService.update_status(appointment=appointment, new_status=new_status)
     except ValueError:
-        messages.error(request, "Invalid status.")
+        messages.error(request, _("Invalid status."))
     else:
-        messages.success(request, "Status updated")
+        messages.success(request, _("Status updated"))
 
     return redirect("appointments:day")
 
@@ -153,7 +154,7 @@ def edit_appointment(request, pk):
             except (ValueError, ValidationError) as e:
                 form.add_error(None, str(e))
             else:
-                messages.success(request, "Appointment updated")
+                messages.success(request, _("Appointment updated"))
                 return redirect("patients:detail", pk=appointment.patient.pk)
 
     else:
