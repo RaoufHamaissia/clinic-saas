@@ -1,6 +1,7 @@
 {% extends "core/base.html" %}
+{% load i18n %}
 
-{% block title %}{{ doctor }} | MediCore{% endblock title %}
+{% block title %}{{ doctor }} {% endblock title %}
 {% block page_title %}{{ doctor }}{% endblock page_title %}
 
 {% block content %}
@@ -12,37 +13,37 @@
                     <p class="text-muted mb-0">{{ doctor.specialty }}</p>
                 </div>
                 {% if doctor.user.is_active %}
-                    <span class="badge bg-success">Active</span>
+                    <span class="badge bg-success">{% trans "Active" %}</span>
                 {% else %}
-                    <span class="badge bg-secondary">Inactive</span>
+                    <span class="badge bg-secondary">{% trans "Inactive" %}</span>
                 {% endif %}
             </div>
 
             <dl class="row">
-                <dt class="col-sm-3">Email</dt>
+                <dt class="col-sm-3">{% trans "Email"%}</dt>
                 <dd class="col-sm-9">{{ doctor.user.email }}</dd>
 
-                <dt class="col-sm-3">Phone</dt>
+                <dt class="col-sm-3">{% trans "Phone"%}</dt>
                 <dd class="col-sm-9">{{ doctor.user.phone|default:"—" }}</dd>
 
-                <dt class="col-sm-3">Clinic admin</dt>
-                <dd class="col-sm-9">{% if doctor.user.is_clinic_admin %}Yes{% else %}No{% endif %}</dd>
+                <dt class="col-sm-3">{% trans "Clinic admin"%}</dt>
+                <dd class="col-sm-9">{% if doctor.user.is_clinic_admin %}{% trans "Yes"%}{% else %}{% trans "No"%}{% endif %}</dd>
 
-                <dt class="col-sm-3">Joined</dt>
+                <dt class="col-sm-3">{% trans "Joined"%}</dt>
                 <dd class="col-sm-9">{{ doctor.created_at|date:"Y-m-d" }}</dd>
             </dl>
 
             {% if doctor.user.is_clinic_admin %}
                 <div class="alert alert-info mb-0">
-                    This is the clinic administrator account and cannot be deactivated.
+                    {% trans "This is the clinic administrator account and cannot be deactivated."%}
                 </div>
             {% else %}
                 <form method="post" action="{% url 'clinics:doctor_toggle_active' doctor.pk %}">
                     {% csrf_token %}
                     {% if doctor.user.is_active %}
-                        <button type="submit" class="btn btn-outline-danger">Deactivate doctor</button>
+                        <button type="submit" class="btn btn-outline-danger">{% trans "Deactivate doctor"%}</button>
                     {% else %}
-                        <button type="submit" class="btn btn-outline-success">Reactivate doctor</button>
+                        <button type="submit" class="btn btn-outline-success">{% trans "Reactivate doctor"%}</button>
                     {% endif %}
                 </form>
             {% endif %}

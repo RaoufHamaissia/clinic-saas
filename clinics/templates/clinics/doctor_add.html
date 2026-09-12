@@ -1,10 +1,11 @@
 {% extends "core/base.html" %}
-{% block title %}Add Doctor | MediCore{% endblock title %}
-{% block page_title %}Add doctor{% endblock page_title %}
+{% load i18n %}
+{% block title %}{% trans "Add Doctor"%}{% endblock title %}
+{% block page_title %}{% trans "Add doctor"%}{% endblock page_title %}
 
 {% block content %}
     {% url 'clinics:doctor_list' as back_url %}
-    {% include "core/partials/back_button.html" with back_url=back_url back_label="Back to doctors" %}
+    {% include "core/partials/back_button.html" with back_url=back_url back_label="{% trans "Back to doctors"%}" %}
 
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
@@ -36,8 +37,8 @@
                     {{ form.specialty.label_tag }}{{ form.specialty }}
                     {% for error in form.specialty.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                 </div>
-                <button type="submit" class="btn btn-primary">Add doctor</button>
-                <a href="{% url 'clinics:doctor_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">{% trans "Add doctor"%}</button>
+                <a href="{% url 'clinics:doctor_list' %}" class="btn btn-outline-secondary">{% trans "Cancel"%}</a>
             </form>
         </div>
     </div>
