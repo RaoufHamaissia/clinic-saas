@@ -1,14 +1,15 @@
 {% extends "core/base.html" %}
+{% load i18n %}
 
-{% block title %}Edit Appointment | MediCore{% endblock title %}
-{% block page_title %}Edit appointment{% endblock page_title %}
+{% block title %}{% trans "Edit appointment" %}| MediCore{% endblock title %}
+{% block page_title %}{% trans "Edit appointment" %}{% endblock page_title %}
 
 {% block content %}
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
             <p class="text-muted">
-                Patient: <strong>{{ appointment.patient }}</strong>
-                {% if appointment.is_walk_in %}<span class="badge bg-warning text-dark ms-2">Walk-in</span>{% endif %}
+                {% trans "Patient" %}: <strong>{{ appointment.patient }}</strong>
+                {% if appointment.is_walk_in %}<span class="badge bg-warning text-dark ms-2">{% trans "Walk-in" %}</span>{% endif %}
             </p>
 
             <form method="post">
@@ -38,7 +39,7 @@
                     </div>
                 {% endif %}
 
-                <button type="submit" class="btn btn-primary">Save changes</button>
+                <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
                 <a href="{% url 'patients:detail' appointment.patient.pk %}" class="btn btn-outline-secondary">Cancel</a>
             </form>
         </div>
