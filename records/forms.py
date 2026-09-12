@@ -1,5 +1,6 @@
 from django import forms 
 from django.forms import formset_factory
+from django.utils.translation import gettext_lazy as _
 
 from clinics.profiles import DoctorProfile
 from patients.models import Patient
@@ -10,22 +11,22 @@ class PrescriptionForm(forms.Form):
 
     doctor = forms.ModelChoiceField(
         queryset=DoctorProfile.objects.none(),
-        label="Doctor",
+        label=_("Doctor"),
         widget=forms.Select(attrs={"class": "form-select"})
     )
 
     patient_name_override = forms.CharField(
         max_length=300, required=False,
-        label="Patient name on this prescription (optional)",
+        label=_("Patient name on this prescription (optional)"),
         widget=forms.TextInput(attrs={
             "class": "form-control",
-            "placeholder": "Leave blank to use the patient's name on file",
+            "placeholder": _("Leave blank to use the patient's name on file"),
         })
     )
 
     notes = forms.CharField(
         required=False,
-        label="Notes",
+        label=_("Notes"),
         widget=forms.Textarea(attrs={"class": "form-control", "rows": 2})
     )
 
@@ -42,26 +43,26 @@ class PrescriptionItemForm(forms.Form):
         max_length=200,
         widget=forms.TextInput(attrs={
             "class": "form-control medication-name-input",
-            "placeholder": "Medication name",
+            "placeholder": _("Medication name"),
             "list": "medication-suggestions",
             "autocomplete": "off",
         })
     )
     dosage = forms.CharField(
             max_length=100, required=False,
-            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Dosage"})
+            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Dosage")})
         )
     frequency = forms.CharField(
             max_length=100, required=False,
-            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Frequency"})
+            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Frequency")})
         )
     duration = forms.CharField(
             max_length=100, required=False,
-            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Duration"})
+            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Duration")})
         )
     instructions = forms.CharField(
             max_length=255, required=False,
-            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Instructions"})
+            widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Instructions")})
         )
 
 PrescriptionItemFormSet = formset_factory(PrescriptionItemForm, extra=3, can_delete=True)
@@ -71,12 +72,12 @@ class DoctorNoteForm(forms.Form):
 
     doctor = forms.ModelChoiceField(
         queryset=DoctorProfile.objects.none(),
-        label="Doctor",
+        label=_("Doctor"),
         widget=forms.Select(attrs={"class": "form-select"})
     )
 
     content = forms.CharField(
-        label="Note",
+        label=_("Note"),
         widget=forms.Textarea(attrs={"class": "form-control", "rows": 6})
     )
 
@@ -90,8 +91,8 @@ class DoctorNoteForm(forms.Form):
 
 class ProcedureReportForm(forms.Form):
    
-    doctor = forms.ModelChoiceField(queryset=DoctorProfile.objects.none(), label="Doctor", widget=forms.Select(attrs={"class": "form-select"}))
-    notes = forms.CharField(required=False, label="General notes", widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}))
+    doctor = forms.ModelChoiceField(queryset=DoctorProfile.objects.none(), label=_("Doctor"), widget=forms.Select(attrs={"class": "form-select"}))
+    notes = forms.CharField(required=False, label=_("General notes"), widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}))
 
     def __init__(self, *args, clinic=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -102,11 +103,11 @@ class ProcedureReportForm(forms.Form):
 class ProcedureItemForm(forms.Form):
     procedure_name = forms.CharField(
         max_length=200,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Procedure name"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Procedure name")})
     )
     findings = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "Findings / notes"})
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": _("Findings / notes")})
     )
 
 
@@ -115,7 +116,7 @@ ProcedureItemFormSet = formset_factory(ProcedureItemForm, extra=2, can_delete=Tr
 
 class LabworkDemandForm(forms.Form):
  
-    doctor = forms.ModelChoiceField(queryset=DoctorProfile.objects.none(), label="Doctor", widget=forms.Select(attrs={"class": "form-select"}))
+    doctor = forms.ModelChoiceField(queryset=DoctorProfile.objects.none(), label=_("Doctor"), widget=forms.Select(attrs={"class": "form-select"}))
 
     def __init__(self, *args, clinic=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -127,7 +128,7 @@ class LabworkItemForm(forms.Form):
     test_name = forms.CharField(
         max_length=200,
         required=False,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Test name"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Test name")})
     )
     urgency = forms.ChoiceField(
         choices=LabworkDemand.Urgency.choices, 
@@ -135,7 +136,7 @@ class LabworkItemForm(forms.Form):
     )
     clinical_indication = forms.CharField(
         max_length=255, required=False,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Clinical indication / reason"})
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Clinical indication / reason")})
     )
 
 
@@ -148,10 +149,10 @@ class DoctorDocumentProfileForm(forms.ModelForm):
         fields = ["professional_title", "registration_number", "signature", "stamp"]
         widgets = {
             "professional_title": forms.TextInput(attrs={
-                "class": "form-control", "placeholder": "e.g. General Practitioner"
+                "class": "form-control", "placeholder": _("e.g. General Practitioner")
             }),
             "registration_number": forms.TextInput(attrs={
-                "class": "form-control", "placeholder": "Medical registration number"
+                "class": "form-control", "placeholder": _("Medical registration number")
             }),
             "signature": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "stamp": forms.ClearableFileInput(attrs={"class": "form-control"}),
