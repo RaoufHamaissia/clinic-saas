@@ -7,6 +7,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from .services import SpecialtyService
 
+from django.utils.translation import gettext_lazy as _
 
 
 
@@ -14,54 +15,54 @@ class ClinicRegistrationForm(forms.Form):
     #-------------------
     # Clinic information
     #-------------------
-    clinic_name = forms.CharField(max_length=200, label="Clinic name",
+    clinic_name = forms.CharField(max_length=200, label=_("Clinic name"),
                                   widget=forms.TelInput(
                                       attrs={
                                           "class": "form-control",
-                                          "placeholder": "Enter clinic name",
+                                          "placeholder": _("Enter clinic name"),
                                       }
                                   )
                                 )
 
-    clinic_phone = forms.CharField(max_length=50, required=False, label="Phone number",
+    clinic_phone = forms.CharField(max_length=50, required=False, label=_("Phone number"),
                                    widget=forms.TelInput(
                                        attrs={
                                            "class": "form-control",
-                                           "placeholder": "Enter clinic phone number"
+                                           "placeholder": _("Enter clinic phone number")
                                        }
                                    )
                                 )
-    clinic_address = forms.CharField(required=False, label="Address", 
+    clinic_address = forms.CharField(required=False, label=_("Address"), 
                                      widget=forms.Textarea(
                                          attrs={
                                              "class": "form-control",
                                              "rows": 3,
-                                             "placeholder": "Enter clinic address"
+                                             "placeholder": _("Enter clinic address")
                                          }
                                      )
                                     )
     #-------------------
     # Doctor account
     #-------------------
-    first_name = forms.CharField(max_length=150, label="First name",
+    first_name = forms.CharField(max_length=150, label=_("First name"),
                                  widget=forms.TelInput(
                                      attrs={
                                         "class": "form-control",
-                                        "placeholder": "First name",
+                                        "placeholder": _("First name"),
                                      }
                                  )
                                 )
 
-    last_name = forms.CharField(max_length=150, label="Last name",
+    last_name = forms.CharField(max_length=150, label=_("Last name"),
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Last name",
+                "placeholder": _("Last name"),
             }
         )
     )
 
-    email = forms.EmailField(label="Email",
+    email = forms.EmailField(label=_("Email"),
         widget=forms.EmailInput(
             attrs={
                 "class": "form-control",
@@ -70,31 +71,31 @@ class ClinicRegistrationForm(forms.Form):
         )
     )
 
-    password = forms.CharField(label="Password",
+    password = forms.CharField(label=_("Password"),
         widget=forms.PasswordInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Create a password",
+                "placeholder": _("Create a password"),
             }
         )
     )
 
-    password_confirm = forms.CharField(label="Confirm password",
+    password_confirm = forms.CharField(label=_("Confirm password"),
         widget=forms.PasswordInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Confirm your password",
+                "placeholder": _("Confirm your password"),
             }
         )
     )   
 
     specialty = forms.CharField(
         max_length=150,
-        label="Specialty",        
+        label=_("Specialty"),        
         widget=forms.TextInput(
             attrs={
                 "class": "form-control specialty-input",
-                "placeholder": "Start typing e.g. Cardiology",
+                "placeholder": _("Start typing e.g. Cardiology"),
                 "list": "specialty-suggestions",
                 "autocomplete": "off",
             }
@@ -109,7 +110,7 @@ class ClinicRegistrationForm(forms.Form):
         email = self.cleaned_data["email"].lower().strip()
 
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("An account with this email already exists.")
+            raise forms.ValidationError(_("An account with this email already exists."))
 
         return email
 
@@ -117,7 +118,7 @@ class ClinicRegistrationForm(forms.Form):
         name = self.cleaned_data["specialty"].strip()
 
         if not name:
-            raise forms.ValidationError("Specialty is required.")
+            raise forms.ValidationError(_("Specialty is required."))
 
         return SpecialtyService.get_or_create(name)
 
@@ -130,7 +131,7 @@ class ClinicRegistrationForm(forms.Form):
         if (password and password_confirm) and (password != password_confirm): 
             self.add_error(
                 "password_confirm",
-                "Passwords do not match."
+                _("Passwords do not match.")
             )
 
         if password:
@@ -145,26 +146,26 @@ class ClinicRegistrationForm(forms.Form):
         
 
 class DoctorCreateForm(forms.Form):
-    first_name = forms.CharField(max_length=150, label="First name",
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "First name"}))
+    first_name = forms.CharField(max_length=150, label=_("First name"),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("First name")}))
 
-    last_name = forms.CharField(max_length=150, label="Last name",
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Last name"}))
+    last_name = forms.CharField(max_length=150, label=_("Last name"),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Last name")}))
 
-    email = forms.EmailField(label="Email",
+    email = forms.EmailField(label=_("Email"),
         widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "doctor@example.com"}))
 
-    password = forms.CharField(label="Password",
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Create a password"}))
+    password = forms.CharField(label=_("Password"),
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": _("Create a password")}))
 
-    password_confirm = forms.CharField(label="Confirm password",
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm password"}))
+    password_confirm = forms.CharField(label=_("Confirm password"),
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": _("Confirm password")}))
 
     specialty = forms.CharField(
-        max_length=150, label="Specialty",
+        max_length=150, label=_("Specialty"),
         widget=forms.TextInput(attrs={
             "class": "form-control specialty-input",
-            "placeholder": "Start typing e.g. Cardiology",
+            "placeholder": _("Start typing e.g. Cardiology"),
             "list": "specialty-suggestions",
             "autocomplete": "off",
         })
@@ -174,7 +175,7 @@ class DoctorCreateForm(forms.Form):
         email = self.cleaned_data["email"].lower().strip()
 
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("An account with this email already exists.")
+            raise forms.ValidationError(_("An account with this email already exists."))
 
         return email
 
@@ -182,7 +183,7 @@ class DoctorCreateForm(forms.Form):
         name = self.cleaned_data["specialty"].strip()
 
         if not name:
-            raise forms.ValidationError("Specialty is required.")
+            raise forms.ValidationError(_("Specialty is required."))
 
         return SpecialtyService.get_or_create(name)
 
@@ -193,7 +194,7 @@ class DoctorCreateForm(forms.Form):
         password_confirm = cleaned_data.get("password_confirm") #type:ignore
 
         if password and password_confirm and password != password_confirm:
-            self.add_error("password_confirm", "Passwords do not match.")
+            self.add_error("password_confirm", _("Passwords do not match."))
 
         if password:
             try:
@@ -256,10 +257,10 @@ class ClinicSettingsForm(forms.ModelForm):
             "address": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "document_header": forms.Textarea(attrs={
                 "class": "form-control", "rows": 2,
-                "placeholder": "Optional text shown at the top of every printed document"
+                "placeholder": _("Optional text shown at the top of every printed document")
             }),
             "document_footer": forms.Textarea(attrs={
                 "class": "form-control", "rows": 2,
-                "placeholder": "Optional text shown at the bottom of every printed document"
+                "placeholder": _("Optional text shown at the bottom of every printed document")
             }),
         }
