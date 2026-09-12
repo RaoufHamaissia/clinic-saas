@@ -30,7 +30,7 @@ class LoginForm(forms.Form):
 class ProfileForm(forms.ModelForm):
     phone = PhoneNumberField(
         required=False,
-        label="Phone",
+        label=_("Phone"),
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "+213 555 12 34 56"})
     )
 
@@ -54,7 +54,7 @@ class ProfileForm(forms.ModelForm):
         email = self.cleaned_data["email"].lower().strip()
 
         if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("An account with this email already exists.")
+            raise forms.ValidationError(_("An account with this email already exists."))
 
         return email
 
@@ -71,16 +71,16 @@ class StyledPasswordChangeForm(PasswordChangeForm):
 
         self.fields["old_password"].widget.attrs.update({
             "class": "form-control",
-            "placeholder": "Current password",
+            "placeholder": _("Current password"),
             "autocomplete": "current-password",
         })
         self.fields["new_password1"].widget.attrs.update({
             "class": "form-control",
-            "placeholder": "New password",
+            "placeholder": _("New password"),
             "autocomplete": "new-password",
         })
         self.fields["new_password2"].widget.attrs.update({
             "class": "form-control",
-            "placeholder": "Confirm new password",
+            "placeholder": _("Confirm new password"),
             "autocomplete": "new-password",
         })
