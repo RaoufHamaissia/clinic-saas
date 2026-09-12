@@ -139,7 +139,7 @@ LANGUAGES = [
     ('fr', 'Français'),
 ]
 
-LOCAL_PATHS = [
+LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
 TIME_ZONE = 'UTC'
