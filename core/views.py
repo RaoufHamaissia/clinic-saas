@@ -11,9 +11,44 @@ from django.core.paginator import Paginator
 
 from .services import AuditLogService
 
+from django.conf import settings
+from django.http import HttpResponseRedirect
+from django.utils.http import url_has_allowed_host_and_scheme
+
 
 # Create your views here.
 
+def set_language(request):
+    """
+    Custom language-switch view (not Django's built-in django.views.i18n.set_language,
+    since our language activation is per-user-stored via UserLanguageMiddleware,
+    not session/cookie-based i18n_patterns). For a logged-in user, persists the
+    choice to their profile so it sticks across devices and future logins. For an
+    anonymous visitor (e.g. the landing page), falls back to session storage.
+    """
+    if request.method == "POST":
+        language = request.POST.get("language")
+        next_url = request.POST.get("next") or "/"
+
+        if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+            next_url = "/"
+
+        valid_languages = dict(settings.LANGUAGES)
+
+        if language in valid_languages:
+            if request.user.is_authenticated:
+                request.user.language = language
+                request.user.save(update_fields=["language"])
+            else:
+                request.session["language"] = language
+
+        return HttpResponseRedirect(next_url)
+
+    return redirect("/")
+
+
+
+   
 def landing_page(request):
     if request.user.is_authenticated:
         return redirect("core:dashboard")
