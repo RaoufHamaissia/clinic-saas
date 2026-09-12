@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.utils.translation import gettext as _
 
 from .profiles import DoctorProfile, SecretaryProfile
 
@@ -31,12 +32,12 @@ def register_clinic(request):
                     specialty=form.cleaned_data["specialty"],
                 )
             except IntegrityError:
-                form.add_error("email", "An account with this email already exist.")
+                form.add_error("email", _("An account with this email already exist."))
 
             else:
                 login(request, doctor.user)
 
-                messages.success(request, "Your clinic has been created successfully")
+                messages.success(request, _("Your clinic has been created successfully"))
 
                 return redirect("core:dashboard")
 
@@ -62,7 +63,7 @@ def _require_clinic_admin(request):
     clinic = request.user.clinic
 
     if clinic is None or not request.user.is_clinic_admin:
-        raise PermissionDenied("Only a clinic administrator can manage staff.")
+        raise PermissionDenied(_("Only a clinic administrator can manage staff."))
 
     return clinic
 
@@ -94,11 +95,11 @@ def add_doctor(request):
                     specialty=form.cleaned_data["specialty"],
                 )
             except IntegrityError:
-                form.add_error("email", "An account with this email already exists.")
+                form.add_error("email", _("An account with this email already exists."))
             except ValueError as e:
                 form.add_error(None, str(e))
             else:
-                messages.success(request, "Doctor added successfully")
+                messages.success(request, _("Doctor added successfully"))
                 return redirect("clinics:doctor_list")
 
     else:
@@ -137,11 +138,11 @@ def add_secretary(request):
                     last_name=form.cleaned_data["last_name"],
                 )
             except IntegrityError:
-                form.add_error("email", "An account with this email already exists.")
+                form.add_error("email", _("An account with this email already exists."))
             except ValueError as e:
                 form.add_error(None, str(e))
             else:
-                messages.success(request, "Secretary added successfully")
+                messages.success(request, _("Secretary added successfully"))
                 return redirect("clinics:secretary_list")
 
     else:
@@ -161,7 +162,7 @@ def clinic_settings(request):
 
         if form.is_valid():
             form.save()
-            messages.success(request, "Clinic settings updated")
+            messages.success(request, _("Clinic settings updated"))
             return redirect("clinics:settings")
 
     else:
@@ -202,9 +203,11 @@ def toggle_doctor_active(request, pk):
     except ValueError as e:
         messages.error(request, str(e))
     else:
-        status = "activated" if doctor.user.is_active else "deactivated"
-        messages.success(request, f"Doctor {status}")
-
+        if doctor.user.is_active:
+            messages.success(request, _("Doctor activated"))
+        else:
+            messages.success(request, _("Doctor deactivated"))
+    
     return redirect("clinics:doctor_detail", pk=pk)
 
 @login_required
@@ -219,7 +222,9 @@ def toggle_secretary_active(request, pk):
     except ValueError as e:
         messages.error(request, str(e))
     else:
-        status = "activated" if secretary.user.is_active else "deactivated"
-        messages.success(request, f"Secretary {status}")
+        if secretary.user.is_active:
+            messages.success(request, _("Secretary activated"))
+        else:
+            messages.success(request, _("Secretary deactivated"))
 
     return redirect("clinics:secretary_detail", pk=pk)
