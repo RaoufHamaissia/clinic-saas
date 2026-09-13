@@ -206,26 +206,26 @@ class DoctorCreateForm(forms.Form):
 
 
 class SecretaryCreateForm(forms.Form):
-    first_name = forms.CharField(max_length=150, label="First name",
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "First name"}))
+    first_name = forms.CharField(max_length=150, label=_("First name"),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder":_( "First name")}))
 
-    last_name = forms.CharField(max_length=150, label="Last name",
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Last name"}))
+    last_name = forms.CharField(max_length=150, label=_("Last name"),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": _("Last name")}))
 
-    email = forms.EmailField(label="Email",
+    email = forms.EmailField(label=_("Email"),
         widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "secretary@example.com"}))
 
-    password = forms.CharField(label="Password",
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Create a password"}))
+    password = forms.CharField(label=_("Password"),
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": _("Create a password")}))
 
-    password_confirm = forms.CharField(label="Confirm password",
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm password"}))
+    password_confirm = forms.CharField(label=_("Confirm password"),
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": _("Confirm password")}))
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower().strip()
 
         if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("An account with this email already exists.")
+            raise forms.ValidationError(_("An account with this email already exists."))
 
         return email
 
@@ -236,7 +236,7 @@ class SecretaryCreateForm(forms.Form):
         password_confirm = cleaned_data.get("password_confirm") #type:ignore
 
         if password and password_confirm and password != password_confirm:
-            self.add_error("password_confirm", "Passwords do not match.")
+            self.add_error("password_confirm", _("Passwords do not match."))
 
         if password:
             try:
@@ -252,14 +252,14 @@ class ClinicSettingsForm(forms.ModelForm):
         model = Clinic
         fields = ["name", "phone", "address", "document_header", "document_footer"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control"}),
-            "phone": forms.TextInput(attrs={"class": "form-control"}),
-            "address": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "document_header": forms.Textarea(attrs={
+            _("name"): forms.TextInput(attrs={"class": "form-control"}),
+            _("phone"): forms.TextInput(attrs={"class": "form-control"}),
+           _("address"): forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+           _("document_header"): forms.Textarea(attrs={
                 "class": "form-control", "rows": 2,
                 "placeholder": _("Optional text shown at the top of every printed document")
             }),
-            "document_footer": forms.Textarea(attrs={
+            _("document_footer"): forms.Textarea(attrs={
                 "class": "form-control", "rows": 2,
                 "placeholder": _("Optional text shown at the bottom of every printed document")
             }),

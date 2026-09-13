@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-12 22:41+0000\n"
+"POT-Creation-Date: 2026-09-13 00:32+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,19 +25,19 @@ msgid "Phone"
 msgstr "Téléphone"
 
 #: accounts/forms.py:41 clinics/forms.py:47 clinics/forms.py:51
-#: clinics/forms.py:149 clinics/forms.py:150 patients/forms.py:8
-#: patients/forms.py:12
+#: clinics/forms.py:149 clinics/forms.py:150 clinics/forms.py:209
+#: clinics/forms.py:210 patients/forms.py:8 patients/forms.py:12
 msgid "First name"
 msgstr "Prénom"
 
 #: accounts/forms.py:42 clinics/forms.py:56 clinics/forms.py:60
-#: clinics/forms.py:152 clinics/forms.py:153 patients/forms.py:19
-#: patients/forms.py:23
+#: clinics/forms.py:152 clinics/forms.py:153 clinics/forms.py:212
+#: clinics/forms.py:213 patients/forms.py:19 patients/forms.py:23
 msgid "Last name"
 msgstr "Nom"
 
 #: accounts/forms.py:43 clinics/forms.py:65 clinics/forms.py:155
-#: clinics/templates/clinics/doctor_detail.html:23
+#: clinics/forms.py:215 clinics/templates/clinics/doctor_detail.html:23
 #: clinics/templates/clinics/doctor_list.html:21
 #: clinics/templates/clinics/secretary_detail.html:20
 #: clinics/templates/clinics/secretary_list.html:23
@@ -49,7 +49,7 @@ msgid "Language"
 msgstr "Langue"
 
 #: accounts/forms.py:57 clinics/forms.py:113 clinics/forms.py:178
-#: clinics/views.py:98 clinics/views.py:141
+#: clinics/forms.py:228 clinics/views.py:98 clinics/views.py:141
 msgid "An account with this email already exists."
 msgstr "Un compte avec cet e-mail existe déjà."
 
@@ -190,7 +190,7 @@ msgstr "Réserver"
 
 #: appointments/templates/appointments/add.html:55
 #: appointments/templates/appointments/walk_in.html:47
-#: billing/templates/billing/request_plan_change.html:66
+#: billing/templates/billing/request_plan_change.html:65
 #: clinics/templates/clinics/doctor_add.html:41
 #: clinics/templates/clinics/secretary_add.html:38
 #: patients/templates/patients/add.html:94
@@ -336,6 +336,7 @@ msgstr "Plan actuel"
 #: billing/templates/billing/change_plan.html:10
 msgid "Switching takes effect immediately — no proration or refund for the remainder of your current period."
 msgstr "Le changement prend effet immédiatement — aucun prorata ni remboursement pour le reste de votre période en cours."
+
 #: billing/templates/billing/change_plan.html:20
 msgid "month"
 msgstr "mois"
@@ -388,27 +389,32 @@ msgstr "Paiement réussi"
 #: billing/templates/billing/payment_success.html:8
 msgid "Your payment was received. It may take a moment for the invoice status to update."
 msgstr "Votre paiement a été reçu. La mise à jour du statut de la facture peut prendre un instant."
+
 #: billing/templates/billing/request_plan_change.html:4
 msgid "Request Plan Change"
-msgstr "Demande de changement de pla"
+msgstr "Demande de changement de plan"
 
 #: billing/templates/billing/request_plan_change.html:5
 msgid "Request a plan change"
-msgstr "Demande de changement de pla"
+msgstr "Demande de changement de plan"
 
-#: billing/templates/billing/request_plan_change.html:17
+#: billing/templates/billing/request_plan_change.html:11
+msgid "Make a bank transfer or CCP payment to our account (details below), then upload your proof of payment here. We'll review it and activate your new plan — usually within one business day."
+msgstr "Effectuez un virement bancaire ou un paiement CCP sur notre compte (détails ci-dessous), puis téléchargez votre preuve de paiement ici. Nous l'examinerons et activerons votre nouveau forfait — généralement sous un jour ouvrable."
+
+#: billing/templates/billing/request_plan_change.html:16
 msgid "Bank / CCP details"
 msgstr "Coordonnées bancaires / CCP"
 
-#: billing/templates/billing/request_plan_change.html:22
+#: billing/templates/billing/request_plan_change.html:21
 msgid "Key"
 msgstr "Clé"
 
-#: billing/templates/billing/request_plan_change.html:30
+#: billing/templates/billing/request_plan_change.html:29
 msgid "Payment instructions haven't been configured yet. Please contact support before submitting a proof of payment."
 msgstr "Les informations de paiement n'ont pas encore été configurées. Veuillez contacter le support avant de soumettre un justificatif de paiement."
 
-#: billing/templates/billing/request_plan_change.html:65
+#: billing/templates/billing/request_plan_change.html:64
 msgid "Submit request"
 msgstr "Soumettre la demande"
 
@@ -559,15 +565,16 @@ msgstr "Adresse"
 msgid "Enter clinic address"
 msgstr "Entrez l'adresse de la clinique"
 
-#: clinics/forms.py:74 clinics/forms.py:158
+#: clinics/forms.py:74 clinics/forms.py:158 clinics/forms.py:218
 msgid "Password"
 msgstr "Mot de passe"
 
-#: clinics/forms.py:78 clinics/forms.py:159
+#: clinics/forms.py:78 clinics/forms.py:159 clinics/forms.py:219
 msgid "Create a password"
 msgstr "Créer un mot de passe"
 
 #: clinics/forms.py:83 clinics/forms.py:161 clinics/forms.py:162
+#: clinics/forms.py:221 clinics/forms.py:222
 msgid "Confirm password"
 msgstr "Confirmer le mot de passe"
 
@@ -588,13 +595,33 @@ msgstr "Commencez à taper, ex. Cardiologie"
 msgid "Specialty is required."
 msgstr "La spécialité est requise."
 
-#: clinics/forms.py:134 clinics/forms.py:197
+#: clinics/forms.py:134 clinics/forms.py:197 clinics/forms.py:239
 msgid "Passwords do not match."
 msgstr "Les mots de passe ne correspondent pas."
+
+#: clinics/forms.py:255
+msgid "name"
+msgstr "Nom"
+
+#: clinics/forms.py:256
+msgid "phone"
+msgstr "Téléphone"
+
+#: clinics/forms.py:257
+msgid "address"
+msgstr "Adresse"
+
+#: clinics/forms.py:258
+msgid "document_header"
+msgstr "En-tête de document"
 
 #: clinics/forms.py:260
 msgid "Optional text shown at the top of every printed document"
 msgstr "Texte facultatif affiché en haut de chaque document imprimé"
+
+#: clinics/forms.py:262
+msgid "document_footer"
+msgstr "pied de page du document"
 
 #: clinics/forms.py:264
 msgid "Optional text shown at the bottom of every printed document"
@@ -756,7 +783,6 @@ msgstr "En-tête de document"
 msgid "This text appears at the top and bottom of every prescription, note, report, and labwork demand your clinic prints."
 msgstr "Ce texte apparaît en haut et en bas de chaque ordonnance, note, compte rendu et demande d'analyses imprimés par votre clinique."
 
-
 #: clinics/views.py:35
 msgid "An account with this email already exist."
 msgstr "Un compte avec cet e-mail existe déjà."
@@ -770,7 +796,6 @@ msgid "Only a clinic administrator can manage staff."
 msgstr "Seul un administrateur de clinique peut gérer le personnel."
 
 #: clinics/views.py:102
-
 msgid "Doctor added successfully"
 msgstr "Médecin ajouté avec succès"
 
@@ -1133,19 +1158,33 @@ msgstr "Nom de l'analyse"
 msgid "Clinical indication / reason"
 msgstr "Indication clinique / motif"
 
+#: records/forms.py:151
+msgid "professional_title"
+msgstr "Titre professionelle"
+
 #: records/forms.py:152
 msgid "e.g. General Practitioner"
 msgstr "ex. Médecin généraliste"
+
+#: records/forms.py:154
+msgid "registration_number"
+msgstr "Numéro d'enregistrement médical"
 
 #: records/forms.py:155
 msgid "Medical registration number"
 msgstr "Numéro d'enregistrement médical"
 
+#: records/forms.py:157
+msgid "signature"
+msgstr "signature"
+
+#: records/forms.py:158
+msgid "stamp"
+msgstr "Cachet de médecin"
+
 #: records/templates/records/document_profile.html:15
 msgid "This information is printed on every prescription, report, and document you generate."
-
 msgstr "Cette information est imprimée sur chaque ordonnance, compte rendu et document que vous générez."
-
 
 #: records/templates/records/document_profile.html:65
 msgid "Save"
@@ -1249,7 +1288,6 @@ msgid "Medications"
 msgstr "Médicaments"
 
 #: records/templates/records/prescription_edit.html:4
-
 msgid "Edit Prescription"
 msgstr "Modifier l'ordonnances"
 
@@ -1258,12 +1296,10 @@ msgid "Edit prescription"
 msgstr "Modifier l'ordonnance"
 
 #: records/templates/records/prescription_edit.html:9
-
 msgid "Edit prescription for"
 msgstr "Modifier l'ordonnance pour"
 
 #: records/templates/records/prescription_edit.html:10
-
 msgid "← Back to "
 msgstr "← Retour "
 

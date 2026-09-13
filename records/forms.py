@@ -148,12 +148,12 @@ class DoctorDocumentProfileForm(forms.ModelForm):
         model = DoctorDocumentProfile
         fields = ["professional_title", "registration_number", "signature", "stamp"]
         widgets = {
-            "professional_title": forms.TextInput(attrs={
+            _("professional_title"): forms.TextInput(attrs={
                 "class": "form-control", "placeholder": _("e.g. General Practitioner")
             }),
-            "registration_number": forms.TextInput(attrs={
+            _("registration_number"): forms.TextInput(attrs={
                 "class": "form-control", "placeholder": _("Medical registration number")
             }),
-            "signature": forms.ClearableFileInput(attrs={"class": "form-control"}),
-            "stamp": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            _("signature"): forms.ClearableFileInput(attrs={"class": "form-control"}),
+            _("stamp"): forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
